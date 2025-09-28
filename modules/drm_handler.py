@@ -197,6 +197,7 @@ async def drm_handler(bot: Client, m: Message):
             raw_text7 = '/d'
             channel_id = m.chat.id
             b_name = '**Link Input**'
+            path = os.path.join("downloads", "Free Batch")
             await editable.delete()
         
     if thumb.startswith("http://") or thumb.startswith("https://"):
