@@ -63,23 +63,42 @@ def register_settings_handlers(bot):
         reply_markup=keyboard
         )
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+  # async def cmd(client, callback_query):
+   #     user_id = callback_query.from_user.id
+    #    first_name = callback_query.from_user.first_name
+     #   caption = f"✨ **Welcome [{first_name}](tg://user?id={user_id})\nChoose Button to set Token**"
+      #  keyboard = InlineKeyboardMarkup([
+       #     [InlineKeyboardButton("Classplus", callback_data="cp_token_command")],
+        #    [InlineKeyboardButton("Physics Wallah", callback_data="pw_token_command"), InlineKeyboardButton("Carrerwill", callback_data="cw_token_command")],
+         #   [InlineKeyboardButton("🔙 Back to Settings", callback_data="setttings")]
+        #])
+       # await callback_query.message.edit_media(
+        #InputMediaPhoto(
+         # media="https://tinypic.host/images/2025/07/14/file_00000000fc2461fbbdd6bc500cecbff8_conversation_id6874702c-9760-800e-b0bf-8e0bcf8a3833message_id964012ce-7ef5-4ad4-88e0-1c41ed240c03-1-1.jpg",
+          #caption=caption
+        #),
+        #reply_markup=keyboard
+        #)
+# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("set_token_command"))
     async def cmd(client, callback_query):
         user_id = callback_query.from_user.id
         first_name = callback_query.from_user.first_name
         caption = f"✨ **Welcome [{first_name}](tg://user?id={user_id})\nChoose Button to set Token**"
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Classplus", callback_data="cp_token_command")],
-            [InlineKeyboardButton("Physics Wallah", callback_data="pw_token_command"), InlineKeyboardButton("Carrerwill", callback_data="cw_token_command")],
+            [InlineKeyboardButton("Classplus ➕ Add", callback_data="cp_add_token_command"),
+             InlineKeyboardButton("Classplus 🗑️ Delete", callback_data="cp_del_token_command")],
+            [InlineKeyboardButton("Physics Wallah", callback_data="pw_token_command"),
+             InlineKeyboardButton("Carrerwill", callback_data="cw_token_command")],
             [InlineKeyboardButton("🔙 Back to Settings", callback_data="setttings")]
         ])
         await callback_query.message.edit_media(
         InputMediaPhoto(
-          media="https://tinypic.host/images/2025/07/14/file_00000000fc2461fbbdd6bc500cecbff8_conversation_id6874702c-9760-800e-b0bf-8e0bcf8a3833message_id964012ce-7ef5-4ad4-88e0-1c41ed240c03-1-1.jpg",
-          caption=caption
-        ),
-        reply_markup=keyboard
-        )
+            media="https://tinypic.host/images/2025/07/14/file_00000000fc2461fbbdd6bc500cecbff8_conversation_id6874702c-9760-800e-b0bf-8e0bcf8a3833message_id964012ce-7ef5-4ad4-88e0-1c41ed240c03-1-1.jpg",
+            caption=caption
+          ),
+          reply_markup=keyboard
+          ) 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("caption_style_command"))
     async def handle_caption(client, callback_query):
@@ -201,6 +220,51 @@ def register_settings_handlers(bot):
         finally:
             await input_msg.delete()
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+    @bot.on_callback_query(filters.regex("cp_add_token_command"))
+    async def handle_add_cp_token(client, callback_query):
+        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]])
+        editable = await callback_query.message.edit("**Send Classplus Token to Add**", reply_markup=keyboard)
+        input_msg = await bot.listen(editable.chat.id)
+        try:
+            if globals.add_cptoken(input_msg.text):
+                await editable.edit(f"✅ Token जोडला!\n\nTotal tokens: {len(globals.list_cptokens())}", reply_markup=keyboard)
+            else:
+                await editable.edit("⚠️ Token आधीपासून आहे किंवा invalid आहे.", reply_markup=keyboard)
+        except Exception as e:
+            await editable.edit(f"<b>❌ Failed to add token:</b>\n<blockquote>{str(e)}</blockquote>", reply_markup=keyboard)
+        finally:
+            await input_msg.delete()
+
+# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+    @bot.on_callback_query(filters.regex("cp_del_token_command"))
+    async def handle_del_cp_token(client, callback_query):
+        pool = globals.list_cptokens()
+        if not pool:
+            return await callback_query.message.edit("🚫 अजून tokens नाहीत.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]]))
+    
+    # list दाखव
+        text = "📌 Classplus Tokens:\n"
+        for i, t in enumerate(pool):
+            text += f"{i}: `{t[:8]}...{t[-8:]}`\n"
+        text += "\n✍️ Send index number of token to delete."
+    
+        keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]])
+        editable = await callback_query.message.edit(text, reply_markup=keyboard)
+        input_msg = await bot.listen(editable.chat.id)
+        try:
+            idx = int(input_msg.text)
+            removed = globals.delete_cptoken(idx)
+            if removed:
+                await editable.edit(f"🗑️ Token काढला index {idx}", reply_markup=keyboard)
+            else:
+                await editable.edit("❌ चुकीचा index दिला.", reply_markup=keyboard)
+        except Exception as e:
+            await editable.edit(f"<b>❌ Failed:</b>\n<blockquote>{str(e)}</blockquote>", reply_markup=keyboard)
+        finally:
+            await input_msg.delete()
+
+# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+
     @bot.on_callback_query(filters.regex("pw_token_command"))
     async def handle_token(client, callback_query):
         user_id = callback_query.from_user.id
