@@ -411,7 +411,19 @@ async def drm_handler(bot: Client, m: Message):
                                                 headers=headers, params=params)
                         data = response.json()
                         signed_url = data.get("url")
+
                         if signed_url:
+                            # ✅ he navi lines add kara
+                            if "alisg-cdn-a.classplusapp.com/media-cdn.classplusapp.com/" in signed_url:
+                                signed_url = signed_url.replace(
+                                    "alisg-cdn-a.classplusapp.com/media-cdn.classplusapp.com/", ""
+                                )
+                            if "media-cdn-alisg.classplusapp.com/media-cdn.classplusapp.com/" in signed_url:
+                                signed_url = signed_url.replace(
+                                    "media-cdn-alisg.classplusapp.com/media-cdn.classplusapp.com/", ""
+                                )
+
+                            url = signed_url   # update url after cleanup
                             break
                     except Exception as e:
                         print(f"Token {idx+1} failed: {e}, trying next token...")
