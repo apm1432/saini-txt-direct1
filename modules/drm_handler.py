@@ -304,15 +304,30 @@ async def drm_handler(bot: Client, m: Message):
                 # Ensure URL uses the media-cdn prefix
                 url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
     
-                # Use your cptoken dynamically
-                api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={cptoken}&auth=4443683167"
-    
-                # Fetch MPD and keys from your helper
-                mpd, keys = helper.get_mps_and_keys(api_url)
-    
-                # Update URL and keys_string for later use
+                mpd, keys = None, None
+                token_used = None
+
+                # Try all tokens until one works
+                for idx, token in enumerate(cptokens):
+                    try:
+                        api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={token}&auth=4443683167"
+                        mpd, keys = helper.get_mps_and_keys(api_url)
+
+                        if mpd and keys:
+                            token_used = token
+                            break  # Success, stop trying tokens
+                    except Exception as e:
+                        print(f"Token {idx+1} failed: {e}, trying next token...")
+
+                # If no valid token worked, skip this link
+                if not mpd or not keys:
+                    print(f"⚠️ All tokens expired for link: {url}. Skipping...")
+                    continue  # Move to next link in your loop
+
+                # Update URL and keys_string for download
                 url = mpd
                 keys_string = " ".join([f"--key {key}" for key in keys])
+
 
                 
             elif "tencdn.classplusapp" in url:
