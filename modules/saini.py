@@ -29,14 +29,29 @@ def duration(filename):
         stderr=subprocess.STDOUT)
     return float(result.stdout)
 
+#def get_mps_and_keys(api_url):
+ #   response = requests.get(api_url)
+  #  response_json = response.json()
+   # #mpd = response_json.get('MPD')
+    ##keys = response_json.get('KEYS')
+    #mpd = response_json.get('url')
+    #keys = response_json.get('keys')
+    #return mpd, keys
+
 def get_mps_and_keys(api_url):
-    response = requests.get(api_url)
-    response_json = response.json()
-    #mpd = response_json.get('MPD')
-    #keys = response_json.get('KEYS')
-    mpd = response_json.get('url')
-    keys = response_json.get('keys')
-    return mpd, keys
+    try:
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        mpd = data.get('url')
+        keys = data.get('keys', [])
+        if not mpd or not keys:
+            return None, None
+        return mpd, keys
+    except Exception as e:
+        print(f"Error fetching MPD/Keys: {e}")
+        return None, None
+
    
 def exec(cmd):
         process = subprocess.run(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
