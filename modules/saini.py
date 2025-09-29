@@ -38,7 +38,7 @@ def duration(filename):
     #keys = response_json.get('keys')
     #return mpd, keys
 
-def get_mps_and_keys(api_url):
+def get_mps_and_keys2(api_url):
     try:
         response = requests.get(api_url, timeout=10)
         response.raise_for_status()
@@ -51,6 +51,26 @@ def get_mps_and_keys(api_url):
     except Exception as e:
         print(f"Error fetching MPD/Keys: {e}")
         return None, None
+
+def get_mps_and_keys(api_url):
+    try:
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        mpd = data.get("url")
+        keys = data.get("keys", [])
+
+        # If url or keys missing, treat as failure
+        if not mpd or not keys:
+            return None, None
+
+        return mpd, keys
+
+    except Exception as e:
+        print(f"Error fetching MPD/Keys: {e}")
+        return None, None
+
 
    
 def exec(cmd):
