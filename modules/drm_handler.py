@@ -52,7 +52,13 @@ async def drm_handler(bot: Client, m: Message):
     thumb = globals.thumb
     CR = globals.CR
     cwtoken = globals.cwtoken
-    cptoken = globals.cptoken
+   # cptoken = globals.cptoken
+    from globals import cptokens
+
+    if cptokens:
+        cptoken = cptokens[0]  # use the first token
+    else:
+        raise Exception("No Classplus tokens available! Please add one.")
     pwtoken = globals.pwtoken
     vidwatermark = globals.vidwatermark
     raw_text2 = globals.raw_text2
