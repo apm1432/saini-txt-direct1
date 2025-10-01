@@ -367,126 +367,95 @@ async def drm_handler(bot: Client, m: Message):
 
                 
             
-            elif "tencdn.classplusapp" in url:
-                signed_url = None
-                for idx, token in enumerate(cptokens):
-                    try:
-                        headers = {
-                            'host': 'api.classplusapp.com',
-                            'x-access-token': token,
-                            'accept-language': 'EN',
-                            'api-version': '18',
-                            'app-version': '1.4.73.2',
-                            'build-number': '35',
-                            'connection': 'Keep-Alive',
-                            'content-type': 'application/json',
-                            'device-details': 'Xiaomi_Redmi 7_SDK-32',
-                            'device-id': 'c28d3cb16bbdac01',
-                            'region': 'IN',
-                            'user-agent': 'Mobile-Android',
-                            'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c',
-                            'accept-encoding': 'gzip'
-                        }
-                        params = {"url": f"{url}"}
-                        response = requests.get('https://api.classplusapp.com/cams/uploader/video/jw-signed-url',
-                                                headers=headers, params=params)
-                        data = response.json()
-                        signed_url = data.get("url")
-                        if signed_url:
-                            break
-                 #   except Exception as e:
-                  #      print(f"Token {idx+1} failed: {e}, trying next token...")
-                    except Exception as e:
-                       # print(f"Token {idx+1} failed: {e}, trying next token...")
-                        await app.send_message(
-                            OWNER_ID,
-                            f"❌ Token failed: {token}\n⚠️ Switching to next token..."
-                        )
-                        continue
-                if not signed_url:
-                    print(f"⚠️ All tokens expired for link: {url}. Skipping...")
-                    continue
-                url = signed_url
+            elif "tencdn.classplusapp" in url or \
+                 'videos.classplusapp' in url or \
+                 'media-cdn.classplusapp.com' in url or \
+                 'media-cdn-alisg.classplusapp.com' in url or \
+                 'media-cdn-a.classplusapp.com' in url:
 
-            elif "videos.classplusapp" in url:
-                signed_url = None
-                for idx, token in enumerate(cptokens):
-                    try:
-                        response = requests.get(
-                            f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}',
-                            headers={'x-access-token': token}
-                        )
-                        data = response.json()
-                        signed_url = data.get("url")
-                        if signed_url:
-                            break
-                   # except Exception as e:
-                    #    print(f"Token {idx+1} failed: {e}, trying next token...")
-                    except Exception as e:
-                       # print(f"Token {idx+1} failed: {e}, trying next token...")
-                        await app.send_message(
-                            OWNER_ID,
-                            f"❌ Token failed: {token}\n⚠️ Switching to next token..."
-                        )
-                        continue
-                if not signed_url:
-                    print(f"⚠️ All tokens expired for link: {url}. Skipping...")
-                    continue
-                url = signed_url
+                token_used = None
+                success = False
 
-            elif 'media-cdn.classplusapp.com' in url or 'media-cdn-alisg.classplusapp.com' in url or 'media-cdn-a.classplusapp.com' in url:
-                signed_url = None
-                for idx, token in enumerate(cptokens):
-                    try:
-                        headers = {
-                            'host': 'api.classplusapp.com',
-                            'x-access-token': token,
-                            'accept-language': 'EN',
-                            'api-version': '18',
-                            'app-version': '1.4.73.2',
-                            'build-number': '35',
-                            'connection': 'Keep-Alive',
-                            'content-type': 'application/json',
-                            'device-details': 'Xiaomi_Redmi 7_SDK-32',
-                            'device-id': 'c28d3cb16bbdac01',
-                            'region': 'IN',
-                            'user-agent': 'Mobile-Android',
-                            'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c',
-                            'accept-encoding': 'gzip'
-                        }
-                        params = {"url": f"{url}"}
-                        response = requests.get('https://api.classplusapp.com/cams/uploader/video/jw-signed-url',
-                                                headers=headers, params=params)
-                        data = response.json()
-                        signed_url = data.get("url")
+                while not success:
+                    for idx, token in enumerate(cptokens):
+                        try:
+                            headers = {
+                                'host': 'api.classplusapp.com',
+                                'x-access-token': f'{token}',
+                                'accept-language': 'EN',
+                                'api-version': '18',
+                                'app-version': '1.4.73.2',
+                                'build-number': '35',
+                                'connection': 'Keep-Alive',
+                                'content-type': 'application/json',
+                                'device-details': 'Xiaomi_Redmi 7_SDK-32',
+                                'device-id': 'c28d3cb16bbdac01',
+                                'region': 'IN',
+                                'user-agent': 'Mobile-Android',
+                                'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c',
+                                'accept-encoding': 'gzip'
+                            }
+                
+                            params = {"url": f"{url}"}
 
-                        if signed_url:
-                            # ✅ he navi lines add kara
-                            if "alisg-cdn-a.classplusapp.com/media-cdn.classplusapp.com/" in signed_url:
-                                signed_url = signed_url.replace(
-                                    "alisg-cdn-a.classplusapp.com/media-cdn.classplusapp.com/", ""
+                            if 'videos.classplusapp' in url:
+                                response = requests.get(
+                                    f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', 
+                                    headers={'x-access-token': f'{token}'}
                                 )
-                            if "media-cdn-alisg.classplusapp.com/media-cdn.classplusapp.com/" in signed_url:
-                                signed_url = signed_url.replace(
-                                    "media-cdn-alisg.classplusapp.com/media-cdn.classplusapp.com/", ""
+                            else:
+                                response = requests.get(
+                                    'https://api.classplusapp.com/cams/uploader/video/jw-signed-url', 
+                                    headers=headers, params=params
                                 )
 
-                            url = signed_url   # update url after cleanup
-                            break
-                   # except Exception as e:
-                    #    print(f"Token {idx+1} failed: {e}, trying next token...")
-                    except Exception as e:
-                       # print(f"Token {idx+1} failed: {e}, trying next token...")
-                        await app.send_message(
-                            OWNER_ID,
-                            f"❌ Token failed: {token}\n⚠️ Switching to next token..."
+                            url = response.json()['url']
+                            token_used = token
+                            success = True
+                            break  # ✅ Token worked, break out of token loop
+
+                        except Exception as e:
+                            await bot.send_message(
+                                OWNER, f"❌ Token error or expired: {token}\n⚠️ Trying next token..."
+                            )
+                            continue
+
+                    # If no token worked, prompt for a new one
+                    while not success:
+                        await bot.send_message(
+                            OWNER, f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
                         )
-                        continue
-                if not signed_url:
-                    print(f"⚠️ All tokens expired for link: {url}. Skipping...")
-                    continue
-                url = signed_url
- 
+                        new_msg: Message = await bot.listen(OWNER, timeout=None)
+                        new_token = new_msg.text.strip()
+                        if new_token.lower() == "stop":
+                            await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
+                            globals.cancel_requested = True
+                            return
+
+                        # Add new token and retry
+                        cptokens.insert(0, new_token)
+                        try:
+                            headers['x-access-token'] = new_token
+                            if 'videos.classplusapp' in url:
+                                response = requests.get(
+                                    f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', 
+                                    headers={'x-access-token': f'{new_token}'}
+                                )
+                            else:
+                                response = requests.get(
+                                    'https://api.classplusapp.com/cams/uploader/video/jw-signed-url', 
+                                    headers=headers, params=params
+                                )
+                            url = response.json()['url']
+                            token_used = new_token
+                            success = True
+                            break
+                        except Exception as e:
+                            await bot.send_message(
+                                OWNER, f"❌ Token failed again: {new_token}\n⚠️ Send another token or 'stop'."
+                            )
+                            continue
+
 
             if "edge.api.brightcove.com" in url:
                 bcov = f'bcov_auth={cwtoken}'
