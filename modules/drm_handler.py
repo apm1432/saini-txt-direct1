@@ -313,19 +313,19 @@ async def drm_handler(bot: Client, m: Message):
                             token_used = token
                             break  # ✅ Token काम करतो
                         else:
+                            failed_token = token[-4:]  # शेवटचे 4 अक्षरं
                             await bot.send_message(
                                 OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
-                                delete_after=5
+                                f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
                             )
                             mpd, keys = None, None
                             continue
 
                     except Exception as e:
+                       failed_token = token[-4:]  # शेवटचे 4 अक्षरं
                        await bot.send_message(
                            OWNER,
-                           f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
-                           delete_after=5
+                           f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
                        )
                        mpd, keys = None, None
                        continue
@@ -417,11 +417,12 @@ async def drm_handler(bot: Client, m: Message):
                             break  # ✅ Token worked, break out of token loop
 
                         except Exception as e:
+                            failed_token = token[-4:]  # शेवटचे 4 अक्षरं
                             await bot.send_message(
                                 OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
-                                delete_after=5
+                                f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
                             )
+
 
                     # If no token worked, prompt for a new one
                     while not success:
