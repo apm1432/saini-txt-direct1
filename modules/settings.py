@@ -221,62 +221,65 @@ def register_settings_handlers(bot):
         finally:
             await input_msg.delete()
 
-    # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....
-
-    # Store listening state for each chat
-    user_listening = {}
+# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
     @bot.on_callback_query(filters.regex("cp_add_token_command"))
     async def handle_add_cp_token(client, callback_query):
-        chat_id = callback_query.message.chat.id
-        keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]]
+        stop_keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🛑 Stop", callback_data="stop_adding_tokens")],
+             [InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]]
         )
-
-        # Mark this chat as listening
-        user_listening[chat_id] = True  
 
         editable = await callback_query.message.edit(
-            "**Send Classplus Token to Add**\n\nPress 🔙 Back to stop.",
-            reply_markup=keyboard
+            "**Send Classplus Tokens one by one**\n\nजेव्हा संपेल तेव्हा 🛑 Stop दाबा.",
+            reply_markup=stop_keyboard
         )
-    
-        while user_listening.get(chat_id, False):  # loop until back pressed
+
+        chat_id = editable.chat.id
+
+        while True:
+            # user input ची वाट बघ
             input_msg = await bot.listen(chat_id)
 
-            # skip non-text (like files, photos, etc.)
-            if not input_msg.text:
-                await input_msg.delete()
-                continue  
+            # जर user ने "stop" button दाबला असेल तर loop तोडा
+            if getattr(input_msg, "data", None) == "stop_adding_tokens":
+                await editable.edit(
+                    f"✅ Token saving थांबले!\n\nTotal tokens: {len(globals.list_cptokens())}",
+                    reply_markup=InlineKeyboardMarkup(
+                        [[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]]
+                    )
+                )
+                break
 
             try:
                 if globals.add_cptoken(input_msg.text):
                     await editable.edit(
                         f"✅ Token जोडला!\n\nTotal tokens: {len(globals.list_cptokens())}",
-                        reply_markup=keyboard
-                    )
+                        reply_markup=stop_keyboard
+                        )    
                 else:
                     await editable.edit(
                         "⚠️ Token आधीपासून आहे किंवा invalid आहे.",
-                        reply_markup=keyboard
+                        reply_markup=stop_keyboard
                     )
             except Exception as e:
                 await editable.edit(
                     f"<b>❌ Failed to add token:</b>\n<blockquote>{str(e)}</blockquote>",
-                    reply_markup=keyboard
+                    reply_markup=stop_keyboard
                 )
             finally:
                 await input_msg.delete()
 
 
-    # Back button handler
-    @bot.on_callback_query(filters.regex("set_token_command"))
-    async def handle_back_button(client, callback_query):
-        chat_id = callback_query.message.chat.id
-        user_listening[chat_id] = False  # stop the loop
-        await callback_query.message.edit("Stopped adding tokens.", reply_markup=None)
+    # stop बटणासाठी वेगळं handler
+    @bot.on_callback_query(filters.regex("stop_adding_tokens"))
+    async def stop_adding_tokens(client, callback_query):
+        # हे फक्त data flag म्हणून वापरण्यासाठी आहे
+        # actual break वरच्या loop मध्ये होईल
+        pass
 
- 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("cp_del_token_command"))
     async def handle_del_cp_token(client, callback_query):
