@@ -313,22 +313,20 @@ async def drm_handler(bot: Client, m: Message):
                             token_used = token
                             break  # ✅ Token काम करतो
                         else:
-                            msg = await bot.send_message(
+                            await bot.send_message(
                                 OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
+                                delete_after=5
                             )
-                            await asyncio.sleep(4)  # 4 सेकंद थांबा
-                            await msg.delete()
                             mpd, keys = None, None
                             continue
 
                     except Exception as e:
-                        msg = await bot.send_message(
+                       await bot.send_message(
                                 OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
+                                delete_after=5
                             )
-                        await asyncio.sleep(5)  # 5 सेकंद थांबा
-                        await msg.delete()
                         mpd, keys = None, None
                         continue
  
@@ -419,12 +417,11 @@ async def drm_handler(bot: Client, m: Message):
                             break  # ✅ Token worked, break out of token loop
 
                         except Exception as e:
-                            msg = await bot.send_message(
+                            await bot.send_message(
                                 OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
+                                delete_after=5
                             )
-                            await asyncio.sleep(5)  # 5 सेकंद थांबा
-                            await msg.delete()
 
                     # If no token worked, prompt for a new one
                     while not success:
