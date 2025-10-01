@@ -221,33 +221,61 @@ def register_settings_handlers(bot):
         finally:
             await input_msg.delete()
 
-    # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+    # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....
+
+    # Store listening state for each chat
+    user_listening = {}
+
     @bot.on_callback_query(filters.regex("cp_add_token_command"))
     async def handle_add_cp_token(client, callback_query):
         chat_id = callback_query.message.chat.id
         keyboard = InlineKeyboardMarkup(
             [[InlineKeyboardButton("🔙 Back", callback_data="set_token_command")]]
         )
- 
-        editable = await callback_query.message.edit("**Send Classplus Token to Add**\n\nPress 🔙 Back to stop.", reply_markup=keyboard)
- 
-        while True:
-            input_msg = await bot.listen(chat_id)  # wait for user message
- 
+
+        # Mark this chat as listening
+        user_listening[chat_id] = True  
+
+        editable = await callback_query.message.edit(
+            "**Send Classplus Token to Add**\n\nPress 🔙 Back to stop.",
+            reply_markup=keyboard
+        )
+    
+        while user_listening.get(chat_id, False):  # loop until back pressed
+            input_msg = await bot.listen(chat_id)
+
+            # skip non-text (like files, photos, etc.)
+            if not input_msg.text:
+                await input_msg.delete()
+                continue  
+
             try:
                 if globals.add_cptoken(input_msg.text):
-                    await editable.edit(f"✅ Token जोडला!\n\nTotal tokens: {len(globals.list_cptokens())}", reply_markup=keyboard)
+                    await editable.edit(
+                        f"✅ Token जोडला!\n\nTotal tokens: {len(globals.list_cptokens())}",
+                        reply_markup=keyboard
+                    )
                 else:
-                    await editable.edit("⚠️ Token आधीपासून आहे किंवा invalid आहे.", reply_markup=keyboard)
+                    await editable.edit(
+                        "⚠️ Token आधीपासून आहे किंवा invalid आहे.",
+                        reply_markup=keyboard
+                    )
             except Exception as e:
-                await editable.edit(f"<b>❌ Failed to add token:</b>\n<blockquote>{str(e)}</blockquote>", reply_markup=keyboard)
+                await editable.edit(
+                    f"<b>❌ Failed to add token:</b>\n<blockquote>{str(e)}</blockquote>",
+                    reply_markup=keyboard
+                )
             finally:
                 await input_msg.delete()
- 
-    # Separate handler for the back button
+
+
+    # Back button handler
     @bot.on_callback_query(filters.regex("set_token_command"))
     async def handle_back_button(client, callback_query):
+        chat_id = callback_query.message.chat.id
+        user_listening[chat_id] = False  # stop the loop
         await callback_query.message.edit("Stopped adding tokens.", reply_markup=None)
+
  
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("cp_del_token_command"))
