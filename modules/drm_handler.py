@@ -323,12 +323,12 @@ async def drm_handler(bot: Client, m: Message):
 
                     except Exception as e:
                        await bot.send_message(
-                                OWNER,
-                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
-                                delete_after=5
-                            )
-                            mpd, keys = None, None
-                            continue
+                           OWNER,
+                           f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token...",
+                           delete_after=5
+                       )
+                       mpd, keys = None, None
+                       continue
  
                 # If no valid token worked, enter wait loop
                 while not mpd or not keys:
