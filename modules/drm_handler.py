@@ -296,83 +296,67 @@ async def drm_handler(bot: Client, m: Message):
             if "acecwply" in url:
                 cmd = f'yt-dlp -o "{name}.%(ext)s" -f "bestvideo[height<={raw_text2}]+bestaudio" --hls-prefer-ffmpeg --no-keep-video --remux-video mkv --no-warning "{url}"'
          
-            #elif "https://cpvod.testbook.com/" in url or "classplusapp.com/drm/" in url:
-             #   url = url.replace("https://cpvod.testbook.com/","https://media-cdn.classplusapp.com/drm/")
-              #  url = f"https://sainibotsdrm.vercel.app/api?url={url}&token={cptoken}&auth=4443683167"
-               # mpd, keys = helper.get_mps_and_keys(url)
-                #url = mpd
-                #keys_string = " ".join([f"--key {key}" for key in keys])
-
             elif "https://cpvod.testbook.com/" in url or "classplusapp.com/drm/" in url:
                 # Ensure URL uses the media-cdn prefix
                 url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
-    
+ 
                 mpd, keys = None, None
                 token_used = None
-
+ 
                 # Try all tokens until one works
                 for idx, token in enumerate(cptokens):
                     try:
                         api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={token}&auth=4443683167"
                         mpd, keys = helper.get_mps_and_keys(api_url)
-
+ 
                         if mpd and keys:
                             token_used = token
-                            break  # Success, stop trying tokens
-                 #   except Exception as e:
-                  #      print(f"Token {idx+1} failed: {e}, trying next token...")
+                            break  # ✅ Success, stop trying tokens
+ 
                     except Exception as e:
-                       # print(f"Token {idx+1} failed: {e}, trying next token...")
-                        await app.send_message(
-                            OWNER_ID,
-                            f"❌ Token failed: {token}\n⚠️ Switching to next token..."
+                        await bot.send_message(
+                            OWNER,
+                            f"❌ Token failed: {token}\n⚠️ Trying next token..."
                         )
+                        mpd, keys = None, None
                         continue
-                # If no valid token worked, skip this link
-                if not mpd or not keys:
-                    print(f"⚠️ All tokens expired for link: {url}. Skipping...")
-                    continue  # Move to next link in your loop
-              #  if not mpd or not keys:
-               #     print(f"⚠️ All tokens expired for link: {url}. Skipping...")
-                #    continue  # Move to next link in your loop
-
+ 
+                # If no valid token worked, enter wait loop
                 while not mpd or not keys:
-                    # Notify owner that all tokens failed
-                    await app.send_message(
-                        OWNER_ID,
+                    await bot.send_message(
+                        OWNER,
                         f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
                     )
-
-                    # Wait for the owner to send a message
-                    new_msg: Message = await app.listen(OWNER_ID, timeout=None)
+ 
+                    # Wait for new token or stop
+                    new_msg: Message = await bot.listen(OWNER, timeout=None)
                     new_token = new_msg.text.strip()
-
+ 
                     if new_token.lower() == "stop":
-                        await app.send_message(OWNER_ID, "⏹️ Process stopped by owner.")
+                        await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
                         globals.cancel_requested = True
                         return  # exit the handler
-
-                    # Add the new token to your list temporarily
+ 
+                    # Add the new token and retry
                     cptokens.insert(0, new_token)
-
-                    # Retry the link with the new token
+ 
                     try:
                         api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={new_token}&auth=4443683167"
                         mpd, keys = helper.get_mps_and_keys(api_url)
                         if mpd and keys:
                             token_used = new_token
-                            break
+                            break  # ✅ Got working token, continue
                     except Exception as e:
-                        await app.send_message(
-                            OWNER_ID,
+                        await bot.send_message(
+                            OWNER,
                             f"❌ Token failed again: {new_token}\n⚠️ Send another token or 'stop'."
                         )
-                        mpd, keys = None, None  # ensure loop continues
-
+                        mpd, keys = None, None  # keep loop alive
+ 
                 # Update URL and keys_string for download
                 url = mpd
                 keys_string = " ".join([f"--key {key}" for key in keys])
-
+ 
 
                 
             
