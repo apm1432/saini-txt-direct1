@@ -317,6 +317,8 @@ async def drm_handler(bot: Client, m: Message):
                                 OWNER,
                                 f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
                             )
+                            await asyncio.sleep(5)  # 5 सेकंद थांबा
+                            await bot.delete_message(OWNER, msg.message_id)  # मेसेज delete करा
                             mpd, keys = None, None
                             continue
 
@@ -325,6 +327,8 @@ async def drm_handler(bot: Client, m: Message):
                             OWNER,
                             f"❌ Token error: {token}\n⚠️ Trying next token..."
                         )
+                        await asyncio.sleep(5)  # 5 सेकंद थांबा
+                        await bot.delete_message(OWNER, msg.message_id)  # मेसेज delete करा
                         mpd, keys = None, None
                         continue
  
@@ -418,6 +422,8 @@ async def drm_handler(bot: Client, m: Message):
                             await bot.send_message(
                                 OWNER, f"❌ Token error or expired: {token}\n⚠️ Trying next token..."
                             )
+                            await asyncio.sleep(5)  # 5 सेकंद थांबा
+                            await bot.delete_message(OWNER, msg.message_id)  # मेसेज delete करा
                             continue
 
                     # If no token worked, prompt for a new one
