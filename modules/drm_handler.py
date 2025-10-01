@@ -311,12 +311,19 @@ async def drm_handler(bot: Client, m: Message):
  
                         if mpd and keys:
                             token_used = token
-                            break  # ✅ Success, stop trying tokens
- 
+                            break  # ✅ Token काम करतो
+                        else:
+                            await bot.send_message(
+                                OWNER,
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
+                            )
+                            mpd, keys = None, None
+                            continue
+
                     except Exception as e:
                         await bot.send_message(
                             OWNER,
-                            f"❌ Token failed: {token}\n⚠️ Trying next token..."
+                            f"❌ Token error: {token}\n⚠️ Trying next token..."
                         )
                         mpd, keys = None, None
                         continue
