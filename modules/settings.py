@@ -220,9 +220,7 @@ def register_settings_handlers(bot):
             await editable.edit(f"<b>❌ Failed to set Classplus Token:</b>\n<blockquote expandable>{str(e)}</blockquote>", reply_markup=keyboard)
         finally:
             await input_msg.delete()
-
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....
-
     @bot.on_callback_query(filters.regex("cp_add_token_command"))
     async def handle_add_cp_token(client, callback_query):
         stop_keyboard = InlineKeyboardMarkup(
@@ -241,7 +239,7 @@ def register_settings_handlers(bot):
             # user input ची वाट बघ
             input_msg = await bot.listen(chat_id)
 
-            # जर user ने "stop" button दाबला असेल तर loop तोडा
+        # जर user ने "stop" button दाबला असेल तर loop तोडा
             if getattr(input_msg, "data", None) == "stop_adding_tokens":
                 await editable.edit(
                     f"✅ Token saving थांबले!\n\nTotal tokens: {len(globals.list_cptokens())}",
@@ -256,7 +254,7 @@ def register_settings_handlers(bot):
                     await editable.edit(
                         f"✅ Token जोडला!\n\nTotal tokens: {len(globals.list_cptokens())}",
                         reply_markup=stop_keyboard
-                        )    
+                    )
                 else:
                     await editable.edit(
                         "⚠️ Token आधीपासून आहे किंवा invalid आहे.",
@@ -271,12 +269,13 @@ def register_settings_handlers(bot):
                 await input_msg.delete()
 
 
-    # stop बटणासाठी वेगळं handler
+# stop बटणासाठी वेगळं handler
     @bot.on_callback_query(filters.regex("stop_adding_tokens"))
     async def stop_adding_tokens(client, callback_query):
-        # हे फक्त data flag म्हणून वापरण्यासाठी आहे
-        # actual break वरच्या loop मध्ये होईल
+    # हे फक्त data flag म्हणून वापरण्यासाठी आहे
+    # actual break वरच्या loop मध्ये होईल
         pass
+
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("cp_del_token_command"))
