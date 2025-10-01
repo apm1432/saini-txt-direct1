@@ -313,7 +313,7 @@ async def drm_handler(bot: Client, m: Message):
                             token_used = token
                             break  # ✅ Token काम करतो
                         else:
-                            await bot.send_message(
+                            msg = await bot.send_message(
                                 OWNER,
                                 f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
                             )
@@ -323,10 +323,10 @@ async def drm_handler(bot: Client, m: Message):
                             continue
 
                     except Exception as e:
-                        await bot.send_message(
-                            OWNER,
-                            f"❌ Token error: {token}\n⚠️ Trying next token..."
-                        )
+                        msg = await bot.send_message(
+                                OWNER,
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
+                            )
                         await asyncio.sleep(5)  # 5 सेकंद थांबा
                         await msg.delete()
                         mpd, keys = None, None
@@ -419,8 +419,9 @@ async def drm_handler(bot: Client, m: Message):
                             break  # ✅ Token worked, break out of token loop
 
                         except Exception as e:
-                            await bot.send_message(
-                                OWNER, f"❌ Token error or expired: {token}\n⚠️ Trying next token..."
+                            msg = await bot.send_message(
+                                OWNER,
+                                f"❌ Token failed (no keys/mpd): {token}\n⚠️ Trying next token..."
                             )
                             await asyncio.sleep(5)  # 5 सेकंद थांबा
                             await msg.delete()
