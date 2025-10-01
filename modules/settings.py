@@ -222,8 +222,6 @@ def register_settings_handlers(bot):
             await input_msg.delete()
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....
-from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
     @bot.on_callback_query(filters.regex("cp_add_token_command"))
     async def handle_add_cp_token(client, callback_query):
