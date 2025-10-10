@@ -306,7 +306,7 @@ async def drm_handler(bot: Client, m: Message):
                 # Try all tokens until one works
                 for idx, token in enumerate(cptokens):
                     try:
-                        api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={token}&auth=4443683167"
+                        api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
                         mpd, keys = helper.get_mps_and_keys(api_url)
  
                         if mpd and keys:
@@ -350,7 +350,7 @@ async def drm_handler(bot: Client, m: Message):
                     cptokens.insert(0, new_token)
  
                     try:
-                        api_url = f"https://sainibotsdrm.vercel.app/api?url={urllib.parse.quote(url)}&token={new_token}&auth=4443683167"
+                        api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
                         mpd, keys = helper.get_mps_and_keys(api_url)
                         if mpd and keys:
                             token_used = new_token
