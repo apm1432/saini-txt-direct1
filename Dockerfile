@@ -16,7 +16,8 @@ RUN apk add --no-cache \
     aria2 \
     make \
     g++ \
-    cmake && \
+    cmake \
+    font-dejavu && \
     wget -q https://github.com/axiomatic-systems/Bento4/archive/v1.6.0-639.zip && \
     unzip v1.6.0-639.zip && \
     cd Bento4-1.6.0-639 && \
@@ -35,4 +36,5 @@ RUN pip3 install --no-cache-dir --upgrade pip \
 
 # Set the command to run the application
 CMD ["sh", "-c", "gunicorn app:app & python3 modules/main.py"]
+
 
