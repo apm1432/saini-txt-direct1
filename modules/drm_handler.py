@@ -479,7 +479,12 @@ async def drm_handler(bot: Client, m: Message):
                 ytf = f"bestvideo[height<={raw_text2}]+bestaudio/best[height<={raw_text2}]"
             else:
                 ytf = f"b[height<={raw_text2}]/bv[height<={raw_text2}]+ba/b/bv+ba"
-           
+            # Build watermark postprocessor arguments if watermark is enabled
+            if vidwatermark != "/d":
+                watermark_filter = f"drawtext=fontfile=vidwater.ttf:text='{vidwatermark}':fontcolor=black@0.7:fontsize=h/6:x=(w-text_w)/2:y=(h-text_h)/2"
+                postprocessor = f'--postprocessor-args "ffmpeg:-vf {watermark_filter} -c:v libx264 -preset ultrafast -crf 23 -c:a copy"'
+            else:
+                postprocessor = ""
             if "jw-prod" in url:
                 cmd = f'yt-dlp -o "{name}.mp4" "{url}"'
             elif "webvideos.classplusapp." in url:
