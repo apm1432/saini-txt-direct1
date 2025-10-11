@@ -363,3 +363,13 @@ async def send_vid(bot: Client, m: Message, cc, filename, vidwatermark, thumb, n
     await reply.delete(True)
     await reply1.delete(True)
     os.remove(f"{filename}.jpg")
+
+        # Cleanup temporary files and cache
+    try:
+        for f in os.listdir():
+            if f.endswith((".part", ".m4a", ".mp4.temp", ".aria2", ".jpg", ".mkv", ".webm")):
+                os.remove(f)
+        print("🧹 Cache and temp files cleaned successfully.")
+    except Exception as e:
+        print(f"Cleanup error: {e}")
+
