@@ -203,6 +203,30 @@ async def decrypt_and_merge_video(mpd_url, keys_string, output_path, output_name
             (output_path / "video.mp4").unlink()
         if (output_path / "audio.m4a").exists():
             (output_path / "audio.m4a").unlink()
+
+        # ✅ Apply Watermark if enabled
+        try:
+            from globals import vidwatermark
+            if vidwatermark != "/d" and vidwatermark.strip() != "":
+                wm_text = vidwatermark.replace("'", "’")  # avoid quote errors
+                wm_output = output_path / f"{output_name}_wm.mp4"
+
+                # bottom-right position watermark
+                watermark_cmd = (
+                    f'ffmpeg -i "{output_path}/{output_name}.mp4" '
+                    f'-vf "drawtext=text=\'{wm_text}\':fontcolor=white@0.6:fontsize=h/15:'
+                    f'x=w-text_w-40:y=h-text_h-40" '
+                    f'-codec:a copy "{wm_output}" -y'
+                )
+                print(f"Applying watermark: {watermark_cmd}")
+                os.system(watermark_cmd)
+
+                # Replace merged video with watermarked version
+                if wm_output.exists():
+                    os.replace(wm_output, output_path / f"{output_name}.mp4")
+        except Exception as werr:
+            print(f"⚠️ Watermark step failed: {werr}")
+
         
         filename = output_path / f"{output_name}.mp4"
 
