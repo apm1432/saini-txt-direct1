@@ -20,6 +20,7 @@ from pathlib import Path
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 from base64 import b64decode
+import globals
 
 def duration(filename):
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
@@ -337,15 +338,9 @@ async def send_vid(bot: Client, m: Message, cc, filename, vidwatermark, thumb, n
         else:
             thumbnail = thumb  
         
-        if vidwatermark == "/d":
-            w_filename = f"{filename}"
-        else:
-            w_filename = f"w_{filename}"
-            font_path = "vidwater.ttf"
-            subprocess.run(
-                f'ffmpeg -i "{filename}" -vf "drawtext=fontfile={font_path}:text=\'{vidwatermark}\':fontcolor=white@0.3:fontsize=h/6:x=(w-text_w)/2:y=(h-text_h)/2" -codec:a copy "{w_filename}"',
-                shell=True
-            )
+         # Watermark already applied during download for yt-dlp videos
+        # For DRM videos, it's applied in decrypt_and_merge_video
+        w_filename = filename
             
     except Exception as e:
         await m.reply_text(str(e))
