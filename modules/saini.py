@@ -214,7 +214,9 @@ async def decrypt_and_merge_video(mpd_url, keys_string, output_path, output_name
                 # bottom-right position watermark
                 watermark_cmd = (
                     f'ffmpeg -i "{output_path}/{output_name}.mp4" '
-                    f'-vf "drawtext=text=\'{wm_text}\':fontcolor=white@0.6:fontsize=h/15:'
+                    f'-vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:'
+                    f'text=\'{wm_text}\':fontcolor=white@0.6:fontsize=h/15:x=w-text_w-40:y=h-text_h-40" '
+
                     f'x=w-text_w-40:y=h-text_h-40" '
                     f'-codec:a copy "{wm_output}" -y'
                 )
