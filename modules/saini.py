@@ -51,14 +51,6 @@ def duration(filename):
         stderr=subprocess.STDOUT)
     return float(result.stdout)
 
-#def get_mps_and_keys(api_url):
- #   response = requests.get(api_url)
-  #  response_json = response.json()
-   # #mpd = response_json.get('MPD')
-    ##keys = response_json.get('KEYS')
-    #mpd = response_json.get('url')
-    #keys = response_json.get('keys')
-    #return mpd, keys
 
 def get_mps_and_keys2(api_url):
     try:
@@ -322,15 +314,15 @@ async def download_video(url,cmd, name):
 
 async def send_doc(bot: Client, m: Message, cc, ka, cc1, prog, count, name, channel_id):
     reply = await bot.send_message(channel_id, f"Downloading pdf:\n<pre><code>{name}</code></pre>")
-    time.sleep(1)
+    await asyncio.sleep(1)  # optional short pause before next link
     start_time = time.time()
     await bot.send_document(ka, caption=cc1)
     count+=1
     await reply.delete (True)
-    time.sleep(1)
+    await asyncio.sleep(1)  # optional short pause before next link
     os.remove(ka)
     cleanup_cache()
-    time.sleep(3) 
+    await asyncio.sleep(3)  # optional short pause before next link
 
 
 def decrypt_file(file_path, key):  
