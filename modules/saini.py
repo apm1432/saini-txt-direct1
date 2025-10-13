@@ -386,5 +386,5 @@ async def send_vid(bot: Client, m: Message, cc, filename, vidwatermark, thumb, n
     await reply1.delete(True)
     os.remove(f"{filename}.jpg")
 
-        # Cleanup temporary files and cache
-   cleanup_cache()
+    # Cleanup temporary files and cache
+    cleanup_cache()
