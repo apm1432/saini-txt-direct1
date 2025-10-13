@@ -22,6 +22,27 @@ from Crypto.Util.Padding import unpad
 from base64 import b64decode
 import globals
 
+import gc  # add this at the top with other imports
+
+def cleanup_cache(folder="."):
+    """
+    Deletes common temporary/cache files and tries to free memory.
+    """
+    try:
+        extensions = (".part", ".m4a", ".mp4.temp", ".aria2", ".jpg", ".mkv", ".webm", ".pdf")
+        for f in os.listdir(folder):
+            if f.endswith(extensions):
+                try:
+                    os.remove(os.path.join(folder, f))
+                except Exception as e:
+                    print(f"Failed to remove {f}: {e}")
+        # Force Python garbage collection
+        gc.collect()
+        print("🧹 Cache and temporary files cleaned successfully.")
+    except Exception as e:
+        print(f"Cleanup error: {e}")
+
+
 def duration(filename):
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                              "format=duration", "-of",
@@ -308,6 +329,7 @@ async def send_doc(bot: Client, m: Message, cc, ka, cc1, prog, count, name, chan
     await reply.delete (True)
     time.sleep(1)
     os.remove(ka)
+    cleanup_cache()
     time.sleep(3) 
 
 
@@ -365,11 +387,4 @@ async def send_vid(bot: Client, m: Message, cc, filename, vidwatermark, thumb, n
     os.remove(f"{filename}.jpg")
 
         # Cleanup temporary files and cache
-    try:
-        for f in os.listdir():
-            if f.endswith((".part", ".m4a", ".mp4.temp", ".aria2", ".jpg", ".mkv", ".webm")):
-                os.remove(f)
-        print("🧹 Cache and temp files cleaned successfully.")
-    except Exception as e:
-        print(f"Cleanup error: {e}")
-
+   cleanup_cache()
