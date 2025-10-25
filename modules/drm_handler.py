@@ -376,90 +376,72 @@ async def drm_handler(bot: Client, m: Message):
                  'media-cdn-alisg.classplusapp.com' in url or \
                  'media-cdn-a.classplusapp.com' in url:
 
+                mpd = None
                 token_used = None
-                success = False
-
-                while not success:
-                    for idx, token in enumerate(cptokens):
-                        try:
-                            headers = {
-                                'host': 'api.classplusapp.com',
-                                'x-access-token': f'{token}',
-                                'accept-language': 'EN',
-                                'api-version': '18',
-                                'app-version': '1.4.73.2',
-                                'build-number': '35',
-                                'connection': 'Keep-Alive',
-                                'content-type': 'application/json',
-                                'device-details': 'Xiaomi_Redmi 7_SDK-32',
-                                'device-id': 'c28d3cb16bbdac01',
-                                'region': 'IN',
-                                'user-agent': 'Mobile-Android',
-                                'webengage-luid': '00000187-6fe4-5d41-a530-26186858be4c',
-                                'accept-encoding': 'gzip'
-                            }
-                
-                            params = {"url": f"{url}"}
-
-                            if 'videos.classplusapp' in url:
-                                response = requests.get(
-                                    f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', 
-                                    headers={'x-access-token': f'{token}'}
-                                )
-                            else:
-                                response = requests.get(
-                                    'https://api.classplusapp.com/cams/uploader/video/jw-signed-url', 
-                                    headers=headers, params=params
-                                )
-
-                            url = response.json()['url']
+ 
+                # Try all tokens until one works
+                for idx, token in enumerate(cptokens):
+                    try:
+                      #  api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
+                        api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
+                        mpd, keys = helper.get_mps_and_keys3(api_url)
+ 
+                        if mpd :
                             token_used = token
-                            success = True
-                            break  # ✅ Token worked, break out of token loop
-
-                        except Exception as e:
+                            break  # ✅ Token काम करतो
+                        else:
                             failed_token = token[-4:]  # शेवटचे 4 अक्षरं
                             await bot.send_message(
                                 OWNER,
                                 f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
                             )
-
-
-                    # If no token worked, prompt for a new one
-                    while not success:
-                        await bot.send_message(
-                            OWNER, f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
-                        )
-                        new_msg: Message = await bot.listen(OWNER, timeout=None)
-                        new_token = new_msg.text.strip()
-                        if new_token.lower() == "stop":
-                            await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
-                            globals.cancel_requested = True
-                            return
-
-                        # Add new token and retry
-                        cptokens.insert(0, new_token)
-                        try:
-                            headers['x-access-token'] = new_token
-                            if 'videos.classplusapp' in url:
-                                response = requests.get(
-                                    f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', 
-                                    headers={'x-access-token': f'{new_token}'}
-                                )
-                            else:
-                                response = requests.get(
-                                    'https://api.classplusapp.com/cams/uploader/video/jw-signed-url', 
-                                    headers=headers, params=params
-                                )
-                            url = response.json()['url']
-                            token_used = new_token
-                            success = True
-                            break
-                        except Exception as e:
-                            await bot.send_message(
-                                OWNER, f"❌ Token failed again: {new_token}\n⚠️ Send another token or 'stop'."
-                            )
+                            mpd = None
                             continue
+
+                    except Exception as e:
+                       failed_token = token[-4:]  # शेवटचे 4 अक्षरं
+                       await bot.send_message(
+                           OWNER,
+                           f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
+                       )
+                       mpd = None
+                       continue
+ 
+                # If no valid token worked, enter wait loop
+                while not mpd or not keys:
+                    await bot.send_message(
+                        OWNER,
+                        f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
+                    )
+ 
+                    # Wait for new token or stop
+                    new_msg: Message = await bot.listen(OWNER, timeout=None)
+                    new_token = new_msg.text.strip()
+ 
+                    if new_token.lower() == "stop":
+                        await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
+                        globals.cancel_requested = True
+                        return  # exit the handler
+ 
+                    # Add the new token and retry
+                    cptokens.insert(0, new_token)
+ 
+                    try:
+                        api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
+                        mpd, keys = helper.get_mps_and_keys3(api_url)
+                        if mpd :
+                            token_used = new_token
+                            break  # ✅ Got working token, continue
+                    except Exception as e:
+                        await bot.send_message(
+                            OWNER,
+                            f"❌ Token failed again: {new_token}\n⚠️ Send another token or 'stop'."
+                        )
+                        mpd = None  # keep loop alive
+ 
+                # Update URL and keys_string for download
+                url = mpd
+                keys_string = " ".join([f"--key {key}" for key in keys])
 
 
             if "edge.api.brightcove.com" in url:
