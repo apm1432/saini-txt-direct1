@@ -71,7 +71,7 @@ def get_mps_and_keys2(api_url):
 
 def get_mps_and_keys(api_url):
     try:
-        response = requests.get(api_url, timeout=10)
+        response = requests.get(api_url, timeout=16)
         response_json = response.json()
         mpd = response_json.get('mpd_url')
         keys = response_json.get('keys')
@@ -86,6 +86,24 @@ def get_mps_and_keys(api_url):
     except Exception as e:
         print(f"Error fetching MPD/Keys: {e}")
         return None, None
+
+def get_mps_and_keys3(api_url):
+    try:
+        response = requests.get(api_url, timeout=16)
+        response_json = response.json()
+        mpd = response_json.get('url')
+        
+
+
+        # If url or keys missing, treat as failure
+        if not mpd :
+            return None
+
+        return mpd
+
+    except Exception as e:
+        print(f"Error fetching MPD/Keys: {e}")
+        return None
 
 
    
