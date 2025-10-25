@@ -59,7 +59,7 @@ async def drm_handler(bot: Client, m: Message):
         cptoken = cptokens[0]  # use the first token
     else:
         await bot.send_message(
-            OWNER_ID,
+            OWNER,
             "⚠️ No Classplus tokens available!\n\nPlease /addtoken before trying again."
         )
         return
@@ -441,7 +441,7 @@ async def drm_handler(bot: Client, m: Message):
  
                 # Update URL and keys_string for download
                 url = mpd
-                
+                keys_string = " ".join([f"--key {key}" for key in keys]) 
 
 
             if "edge.api.brightcove.com" in url:
