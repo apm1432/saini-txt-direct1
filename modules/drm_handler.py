@@ -408,7 +408,7 @@ async def drm_handler(bot: Client, m: Message):
                        continue
  
                 # If no valid token worked, enter wait loop
-                while not mpd or not keys:
+                while not mpd:
                     await bot.send_message(
                         OWNER,
                         f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
@@ -441,7 +441,7 @@ async def drm_handler(bot: Client, m: Message):
  
                 # Update URL and keys_string for download
                 url = mpd
-                keys_string = " ".join([f"--key {key}" for key in keys])
+                
 
 
             if "edge.api.brightcove.com" in url:
