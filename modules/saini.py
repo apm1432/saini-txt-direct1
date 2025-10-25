@@ -72,13 +72,9 @@ def get_mps_and_keys2(api_url):
 def get_mps_and_keys(api_url):
     try:
         response = requests.get(api_url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-    #    mpd = data.get("url")
-     #   keys = data.get("keys", [])
-        mpd = data.get("url") or data.get("URL") or data.get("mpd") or data.get("MPD")
-        keys = data.get("keys") or data.get("KEYS") or []
+        response_json = response.json()
+        mpd = response_json.get('mpd_url')
+        keys = response_json.get('keys')
 
 
         # If url or keys missing, treat as failure
