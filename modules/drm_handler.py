@@ -57,11 +57,11 @@ async def drm_handler(bot: Client, m: Message):
 
     if cptokens:
         cptoken = cptokens[0]  # use the first token
-  #  else:
-   #     await bot.send_message(
-       #     OWNER,
-        #    "⚠️ No Classplus tokens available!\n\nPlease /addtoken before trying again."
-     #   )
+    else:
+        await bot.send_message(
+            OWNER,
+            "⚠️ No Classplus tokens available!\n\nPlease /addtoken before trying again."
+        )
         return
     vidwatermark = globals.vidwatermark
     raw_text2 = globals.raw_text2
