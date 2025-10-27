@@ -308,7 +308,7 @@ async def drm_handler(bot: Client, m: Message):
                     try:
                         api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
                         # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
-                        mpd, keys = helper.get_mps_and_keys(api_url)
+                        mpd, keys = helper.get_mps_and_keys2(api_url)
  
                         if mpd and keys:
                             token_used = token
@@ -353,7 +353,7 @@ async def drm_handler(bot: Client, m: Message):
                     try:
                         # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
                         api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
-                        mpd, keys = helper.get_mps_and_keys(api_url)
+                        mpd, keys = helper.get_mps_and_keys2(api_url)
                         if mpd and keys:
                             token_used = new_token
                             break  # ✅ Got working token, continue
