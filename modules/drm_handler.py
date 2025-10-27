@@ -57,11 +57,11 @@ async def drm_handler(bot: Client, m: Message):
 
     if cptokens:
         cptoken = cptokens[0]  # use the first token
-    else:
-        await bot.send_message(
-            OWNER,
-            "⚠️ No Classplus tokens available!\n\nPlease /addtoken before trying again."
-        )
+  #  else:
+   #     await bot.send_message(
+       #     OWNER,
+        #    "⚠️ No Classplus tokens available!\n\nPlease /addtoken before trying again."
+     #   )
         return
     vidwatermark = globals.vidwatermark
     raw_text2 = globals.raw_text2
@@ -306,8 +306,8 @@ async def drm_handler(bot: Client, m: Message):
                 # Try all tokens until one works
                 for idx, token in enumerate(cptokens):
                     try:
-                      #  api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
-                        api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
+                        api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
+                        # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
                         mpd, keys = helper.get_mps_and_keys(api_url)
  
                         if mpd and keys:
@@ -351,7 +351,8 @@ async def drm_handler(bot: Client, m: Message):
                     cptokens.insert(0, new_token)
  
                     try:
-                        api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
+                        # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
+                        api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
                         mpd, keys = helper.get_mps_and_keys(api_url)
                         if mpd and keys:
                             token_used = new_token
