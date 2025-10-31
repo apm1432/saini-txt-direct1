@@ -378,6 +378,21 @@ async def drm_handler(bot: Client, m: Message):
 
                         await asyncio.sleep(delay)
 
+                    # ✅ All retries exhausted
+                    if status_msg:
+                        try:
+                            await status_msg.edit("❌ All retries failed.")
+                        except:
+                            pass
+                        await asyncio.sleep(2)
+                        try:
+                            await status_msg.delete()
+                        except:
+                            pass
+
+                    return None, None
+
+
                 
 
                 # 🔁 First try with default API
@@ -427,7 +442,7 @@ async def drm_handler(bot: Client, m: Message):
                         if mode == "/new":
                             # 🆕 User enters a new API manually
                             await bot.send_message(m.from_user.id, "✏️ Send the new API URL:")
-                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
+                            new_api_msg: Message = await bot.listen(m.from_user.id, timeout=None)
                             new_api = new_api_msg.text.strip()
 
                             # 🧠 Save new API for future
@@ -446,7 +461,7 @@ async def drm_handler(bot: Client, m: Message):
                                 [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
                             )
                             await bot.send_message(
-                                OWNER,
+                                m.from_user.id,
                                 f"🌐 Saved APIs:\n{api_list_text}\n\n"
                                 "Reply with the number (1, 2, 3...) to choose."
                             )
