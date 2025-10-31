@@ -324,67 +324,19 @@ async def drm_handler(bot: Client, m: Message):
 
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
-
-                    status_msg = None  # ✅ one message to update
-
                     for attempt in range(retries):
                         try:
-                            formatted_api = api_template.format(
-                                url=urllib.parse.quote(url),
-                                cptoken=cptoken
-                            )
-
-                            # ✅ show first status message
-                            if status_msg is None:
-                                status_msg = await bot.send_message(
-                                    OWNER,
-                                    f"⏳ Trying API...\nAttempt {attempt+1}/{retries}"
-                                )
-                            else:
-                                # ✅ edit same message
-                                await status_msg.edit(
-                                    f"⏳ Trying API...\nAttempt {attempt+1}/{retries}"
-                                )
-
-                            # ✅ main function
+                            formatted_api = api_template.format(url=urllib.parse.quote(url))
                             mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
-
                             if mpd_local and keys_local:
-                                await status_msg.edit(
-                                    f"✅ Keys extracted successfully on attempt {attempt+1}"
-                                )
-                                # ✅ delete after 3 seconds
-                                await asyncio.sleep(3)
-                                try:
-                                    await status_msg.delete()
-                                except:
-                                    pass
-
+                                await bot.send_message(OWNER, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
-
                             else:
-                                await status_msg.edit(
-                                    f"⚠️ Attempt {attempt+1}/{retries} failed.\nRetrying in {delay}s..."
-                                )
-
+                                await bot.send_message(OWNER, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
                         except Exception as e:
-                            await status_msg.edit(
-                                f"⚠️ Error on attempt {attempt+1}/{retries}:\n{e}\nRetrying in {delay}s..."
-                            )
-
+                            await bot.send_message(OWNER, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
                         await asyncio.sleep(delay)
-
-                    # ✅ All failed
-                    await status_msg.edit("❌ All retries failed.")
-                    await asyncio.sleep(3)
-                    try:
-                        await status_msg.delete()
-                    except:
-                        pass
-
                     return None, None
-
-                
 
                 # 🔁 First try with default API
                 mpd, keys = await try_api(current_api)
