@@ -337,7 +337,7 @@ async def drm_handler(bot: Client, m: Message):
                             # ✅ show first status message
                             if status_msg is None:
                                 status_msg = await bot.send_message(
-                                    m.from_user.id,
+                                    OWNER,
                                     f"⏳ Trying API...\nAttempt {attempt+1}/{retries}"
                                 )
                             else:
@@ -366,32 +366,23 @@ async def drm_handler(bot: Client, m: Message):
                                 await status_msg.edit(
                                     f"⚠️ Attempt {attempt+1}/{retries} failed.\nRetrying in {delay}s..."
                                 )
-                        
+
                         except Exception as e:
-                            if status_msg:
-                                try:
-                                    await status_msg.edit(
-                                        f"⚠️ Error on attempt {attempt+1}/{retries}:\n{e}\nRetrying in {delay}s..."
-                                    )
-                                except:
-                                    pass
+                            await status_msg.edit(
+                                f"⚠️ Error on attempt {attempt+1}/{retries}:\n{e}\nRetrying in {delay}s..."
+                            )
 
                         await asyncio.sleep(delay)
 
-                    # ✅ All retries exhausted
-                    if status_msg:
-                        try:
-                            await status_msg.edit("❌ All retries failed.")
-                        except:
-                            pass
-                        await asyncio.sleep(2)
-                        try:
-                            await status_msg.delete()
-                        except:
-                            pass
+                    # ✅ All failed
+                    await status_msg.edit("❌ All retries failed.")
+                    await asyncio.sleep(3)
+                    try:
+                        await status_msg.delete()
+                    except:
+                        pass
 
                     return None, None
-
 
                 
 
@@ -399,31 +390,31 @@ async def drm_handler(bot: Client, m: Message):
                 mpd, keys = await try_api(current_api)
 
                 # 🚨 If failed 5 times
-                while not mpd or not keys:    
+                while not mpd or not keys:
                     await bot.send_message(
-                        m.from_user.id,
-                        f"❌ All retries failed for link:\n{url}\n\n"
-                        "Please reply with one of the following commands:\n"
+                        OWNER,
+                       f"❌ All retries failed for link:\n{url}\n\n"
+                       "Please reply with one of the following commands:\n"
                         "• `/retry` → Try same API again\n"
                         "• `/change` → Change API (new or saved)\n"
                         "• `/skip` → Skip this link\n"
                         "• `/stoped` → Stop all processing"
                     )
 
-                    new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                    new_msg: Message = await bot.listen(OWNER, timeout=None)
                     cmd = new_msg.text.strip().lower()
 
                     if cmd == "/stoped":
-                        await bot.send_message(m.from_user.id, "⏹️ Process stopped by owner.")
+                        await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
                         globals.cancel_requested = True
                         return
 
                     elif cmd == "/skip":
-                        await bot.send_message(m.from_user.id, "⏭️ Skipping this link...")
+                        await bot.send_message(OWNER, "⏭️ Skipping this link...")
                         return
 
                     elif cmd == "/retry":
-                        await bot.send_message(m.from_user.id, f"🔁 Retrying same API again (#{current_api_index+1})...")
+                        await bot.send_message(OWNER, f"🔁 Retrying same API again (#{current_api_index+1})...")
                         mpd, keys = await try_api(current_api)
                         if mpd and keys:
                             break
@@ -431,18 +422,18 @@ async def drm_handler(bot: Client, m: Message):
                     elif cmd == "/change":
                         # 🧭 Ask if user wants to enter a new API or use saved ones
                         await bot.send_message(
-                        m.from_user.id,
+                        OWNER,
                             "🔄 Do you want to use a **new API** or a **saved API**?\n"
                             "Reply with: `/new` or `/saved`"
                         )
 
-                        mode_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                        mode_msg: Message = await bot.listen(OWNER, timeout=None)
                         mode = mode_msg.text.strip().lower()
 
                         if mode == "/new":
                             # 🆕 User enters a new API manually
-                            await bot.send_message(m.from_user.id, "✏️ Send the new API URL:")
-                            new_api_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                            await bot.send_message(OWNER, "✏️ Send the new API URL:")
+                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
                             new_api = new_api_msg.text.strip()
 
                             # 🧠 Save new API for future
@@ -450,7 +441,7 @@ async def drm_handler(bot: Client, m: Message):
                             await save_apis()
 
                             current_api = new_api
-                            await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
+                            await bot.send_message(OWNER, "✅ New API saved & selected. Retrying 5 times...")
                             mpd, keys = await try_api(current_api)
                             if mpd and keys:
                                 break
@@ -461,32 +452,32 @@ async def drm_handler(bot: Client, m: Message):
                                 [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
                             )
                             await bot.send_message(
-                                m.from_user.id,
+                                OWNER,
                                 f"🌐 Saved APIs:\n{api_list_text}\n\n"
                                 "Reply with the number (1, 2, 3...) to choose."
                             )
 
-                            choice_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                            choice_msg: Message = await bot.listen(OWNER, timeout=None)
                             try:
                                 choice = int(choice_msg.text.strip()) - 1
                                 if 0 <= choice < len(SAVED_APIS):
                                     current_api_index = choice
                                     current_api = SAVED_APIS[current_api_index]
-                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
+                                    await bot.send_message(OWNER, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
                                     mpd, keys = await try_api(current_api)
                                     if mpd and keys:
                                         break
                                     else:
-                                        await bot.send_message(m.from_user.id, "❌ This saved API also failed. Try another or `/new`.")
+                                        await bot.send_message(OWNER, "❌ This saved API also failed. Try another or `/new`.")
                                 else:
-                                    await bot.send_message(m.from_user.id, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
+                                    await bot.send_message(OWNER, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
                             except ValueError:
-                                await bot.send_message(m.from_user.id, "⚠️ Invalid input. Send a number like 1, 2, or 3.")
+                                await bot.send_message(OWNER, "⚠️ Invalid input. Send a number like 1, 2, or 3.")
                         else:
-                            await bot.send_message(m.from_user.id, "⚠️ Please reply only with `/new` or `/saved`.")
+                            await bot.send_message(OWNER, "⚠️ Please reply only with `/new` or `/saved`.")
 
                     else:
-                        await bot.send_message(m.from_user.id, "❓ Unknown command. Please send /retry /change /skip /stoped.")
+                        await bot.send_message(OWNER, "❓ Unknown command. Please send /retry /change /skip /stoped.")
 
                 # ✅ Continue only if success
                 if mpd and keys:
