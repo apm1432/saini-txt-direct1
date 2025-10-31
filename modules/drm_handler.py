@@ -46,49 +46,6 @@ from vars import api_url, api_token
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
 
 
-async def wait_with_heartbeat(bot, chat_id, url):
-    prompt = (
-        f"❌ All retries failed for link:\n{url}\n\n"
-        "Please reply with one of the following commands:\n"
-        "• `/retry` → Try same API again\n"
-        "• `/change` → Change API (new or saved)\n"
-        "• `/skip` → Skip this link\n"
-        "• `/stoped` → Stop all processing"
-    )
-
-    # ✅ First message send
-    wait_msg = await bot.send_message(chat_id, prompt)
-
-    seconds = 0
-
-    while True:
-        try:
-            # ✅ Wait 10 seconds for user reply
-            reply = await bot.listen(chat_id, timeout=10)
-
-            # ✅ Delete heartbeat message when user replies
-            try:
-                await wait_msg.delete()
-            except:
-                pass
-
-            return reply.text.strip()
-
-        except asyncio.TimeoutError:
-            # ✅ No reply → edit same message
-            seconds += 10
-            try:
-                await wait_msg.edit(
-                    prompt + f"\n\n⏳ Still waiting… {seconds} sec passed."
-                )
-            except Exception as e:
-                # ✅ Do NOT stop function
-                # ✅ Do NOT return None
-                # ✅ Continue heartbeat safely
-                print("EDIT ERROR:", e)
-                continue
-
-
 async def drm_handler(bot: Client, m: Message):
     globals.processing_request = True
     globals.cancel_requested = False
@@ -433,23 +390,19 @@ async def drm_handler(bot: Client, m: Message):
                 mpd, keys = await try_api(current_api)
 
                 # 🚨 If failed 5 times
-                while not mpd or not keys:
-                    # ✅ Use heartbeat wait instead of static message
-                    cmd = await wait_with_heartbeat(bot, m.from_user.id, url)
-                    cmd = cmd.lower()
+                while not mpd or not keys:    
+                    await bot.send_message(
+                        OWNER,
+                       f"❌ All retries failed for link:\n{url}\n\n"
+                       "Please reply with one of the following commands:\n"
+                        "• `/retry` → Try same API again\n"
+                        "• `/change` → Change API (new or saved)\n"
+                        "• `/skip` → Skip this link\n"
+                        "• `/stoped` → Stop all processing"
+                    )
 
-               #     await bot.send_message(
-                #        OWNER,
-                 #      f"❌ All retries failed for link:\n{url}\n\n"
-                  #     "Please reply with one of the following commands:\n"
-                   #     "• `/retry` → Try same API again\n"
-                    #    "• `/change` → Change API (new or saved)\n"
-                     #   "• `/skip` → Skip this link\n"
-                      #  "• `/stoped` → Stop all processing"
-                    #)
-
-                   # new_msg: Message = await bot.listen(OWNER, timeout=None)
-                    #cmd = new_msg.text.strip().lower()
+                    new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                    cmd = new_msg.text.strip().lower()
 
                     if cmd == "/stoped":
                         await bot.send_message(m.from_user.id, "⏹️ Process stopped by owner.")
