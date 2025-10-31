@@ -56,9 +56,7 @@ async def drm_handler(bot: Client, m: Message):
     from globals import cptokens
 
     if cptokens:
-        cptoken = cptokens[0]  # use the first token
-    else:
-        return
+        cptoken = cptokens[0] if cptokens else None
     vidwatermark = globals.vidwatermark
     raw_text2 = globals.raw_text2
     quality = globals.quality
