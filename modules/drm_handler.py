@@ -34,6 +34,8 @@ import aiofiles
 import zipfile
 import shutil
 import ffmpeg
+import json
+
 
 import saini as helper
 import globals
@@ -290,80 +292,150 @@ async def drm_handler(bot: Client, m: Message):
             if "acecwply" in url:
                 cmd = f'yt-dlp -o "{name}.%(ext)s" -f "bestvideo[height<={raw_text2}]+bestaudio" --hls-prefer-ffmpeg --no-keep-video --remux-video mkv --no-warning "{url}"'
          
-            elif "https://cpvod.testbook.com/" in url or "classplusapp.com/drm/" in url:
-                # Ensure URL uses the media-cdn prefix
-                url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
- 
-                mpd, keys = None, None
-                token_used = None
- 
-                # Try all tokens until one works
-                for idx, token in enumerate(cptokens):
-                    try:
-                       # api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
-                        # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
-                        api_url = f"https://covercel.vercel.app/extract_keys?url={urllib.parse.quote(url)}@bots_updatee&user_id=6050965589"
-                        mpd, keys = helper.get_mps_and_keys2(api_url)
- 
-                        if mpd and keys:
-                            token_used = token
-                            break  # ✅ Token काम करतो
-                        else:
-                            failed_token = token[-4:]  # शेवटचे 4 अक्षरं
-                            await bot.send_message(
-                                OWNER,
-                                f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
-                            )
-                            mpd, keys = None, None
-                            continue
 
-                    except Exception as e:
-                       failed_token = token[-4:]  # शेवटचे 4 अक्षरं
-                       await bot.send_message(
-                           OWNER,
-                           f"❌ Token failed (last 4): ...{failed_token}\n⚠️ Trying next token..."
-                       )
-                       mpd, keys = None, None
-                       continue
- 
-                # If no valid token worked, enter wait loop
+
+            elif "https://cpvod.testbook.com/" in url or "classplusapp.com/drm/" in url:
+                # ✅ Ensure correct prefix
+                url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
+
+                mpd, keys = None, None
+                SAVED_APIS_FILE = "saved_apis.json"
+
+                # ✅ Load saved APIs (persistent memory)
+                if os.path.exists(SAVED_APIS_FILE):
+                    with open(SAVED_APIS_FILE, "r") as f:
+                        SAVED_APIS = json.load(f)
+                else:
+                    SAVED_APIS = [
+                        "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
+                        "https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={cptoken}",
+                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id=6050965589",
+                    ]
+                    with open(SAVED_APIS_FILE, "w") as f:
+                        json.dump(SAVED_APIS, f, indent=2)
+
+                current_api_index = 0
+                current_api = SAVED_APIS[current_api_index]
+
+                async def save_apis():
+                    """Save updated API list to file"""
+                    with open(SAVED_APIS_FILE, "w") as f:
+                        json.dump(SAVED_APIS, f, indent=2)
+
+                async def try_api(api_template, retries=5, delay=10):
+                    """Helper: Try same API several times"""
+                    for attempt in range(retries):
+                        try:
+                            formatted_api = api_template.format(url=urllib.parse.quote(url))
+                            mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
+                            if mpd_local and keys_local:
+                                await bot.send_message(OWNER, f"✅ Got keys successfully on attempt {attempt+1}")
+                                return mpd_local, keys_local
+                            else:
+                                await bot.send_message(OWNER, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
+                        except Exception as e:
+                            await bot.send_message(OWNER, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
+                        await asyncio.sleep(delay)
+                    return None, None
+
+                # 🔁 First try with default API
+                mpd, keys = await try_api(current_api)
+
+                # 🚨 If failed 5 times
                 while not mpd or not keys:
                     await bot.send_message(
                         OWNER,
-                        f"⚠️ All tokens failed for link: {url}\nPlease send a new token to resume or 'stop' to cancel."
+                       f"❌ All retries failed for link:\n{url}\n\n"
+                       "Please reply with one of the following commands:\n"
+                        "• `/retry` → Try same API again\n"
+                        "• `/change` → Change API (new or saved)\n"
+                        "• `/skip` → Skip this link\n"
+                        "• `/stoped` → Stop all processing"
                     )
- 
-                    # Wait for new token or stop
+
                     new_msg: Message = await bot.listen(OWNER, timeout=None)
-                    new_token = new_msg.text.strip()
- 
-                    if new_token.lower() == "stop":
+                    cmd = new_msg.text.strip().lower()
+
+                    if cmd == "/stoped":
                         await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
                         globals.cancel_requested = True
-                        return  # exit the handler
- 
-                    # Add the new token and retry
-                    cptokens.insert(0, new_token)
- 
-                    try:
-                        # api_url = f"https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={urllib.parse.quote(url)}@botupdatevip4u&user_id=6050965589"
-                        api_url = f"https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={token}"
-                        api_url = f"https://covercel.vercel.app/extract_keys?url={urllib.parse.quote(url)}@bots_updatee&user_id=6050965589"
-                        mpd, keys = helper.get_mps_and_keys2(api_url)
+                        return
+
+                    elif cmd == "/skip":
+                        await bot.send_message(OWNER, "⏭️ Skipping this link...")
+                        return
+
+                    elif cmd == "/retry":
+                        await bot.send_message(OWNER, f"🔁 Retrying same API again (#{current_api_index+1})...")
+                        mpd, keys = await try_api(current_api)
                         if mpd and keys:
-                            token_used = new_token
-                            break  # ✅ Got working token, continue
-                    except Exception as e:
+                            break
+
+                    elif cmd == "/change":
+                        # 🧭 Ask if user wants to enter a new API or use saved ones
                         await bot.send_message(
-                            OWNER,
-                            f"❌ Token failed again: {new_token}\n⚠️ Send another token or 'stop'."
+                        OWNER,
+                            "🔄 Do you want to use a **new API** or a **saved API**?\n"
+                            "Reply with: `/new` or `/saved`"
                         )
-                        mpd, keys = None, None  # keep loop alive
- 
-                # Update URL and keys_string for download
-                url = mpd
-                keys_string = " ".join([f"--key {key}" for key in keys])
- 
+
+                        mode_msg: Message = await bot.listen(OWNER, timeout=None)
+                        mode = mode_msg.text.strip().lower()
+
+                        if mode == "/new":
+                            # 🆕 User enters a new API manually
+                            await bot.send_message(OWNER, "✏️ Send the new API URL:")
+                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
+                            new_api = new_api_msg.text.strip()
+
+                            # 🧠 Save new API for future
+                            SAVED_APIS.append(new_api)
+                            await save_apis()
+
+                            current_api = new_api
+                            await bot.send_message(OWNER, "✅ New API saved & selected. Retrying 5 times...")
+                            mpd, keys = await try_api(current_api)
+                            if mpd and keys:
+                                break
+
+                        elif mode == "/saved":
+                            # 📋 Show saved list
+                            api_list_text = "\n".join(
+                                [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
+                            )
+                            await bot.send_message(
+                                OWNER,
+                                f"🌐 Saved APIs:\n{api_list_text}\n\n"
+                                "Reply with the number (1, 2, 3...) to choose."
+                            )
+
+                            choice_msg: Message = await bot.listen(OWNER, timeout=None)
+                        try:
+                                choice = int(choice_msg.text.strip()) - 1
+                                if 0 <= choice < len(SAVED_APIS):
+                                    current_api_index = choice
+                                    current_api = SAVED_APIS[current_api_index]
+                                    await bot.send_message(OWNER, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
+                                    mpd, keys = await try_api(current_api)
+                                    if mpd and keys:
+                                        break
+                                    else:
+                                        await bot.send_message(OWNER, "❌ This saved API also failed. Try another or `/new`.")
+                                else:
+                                    await bot.send_message(OWNER, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
+                            except ValueError:
+                                await bot.send_message(OWNER, "⚠️ Invalid input. Send a number like 1, 2, or 3.")
+                        else:
+                            await bot.send_message(OWNER, "⚠️ Please reply only with `/new` or `/saved`.")
+
+                    else:
+                        await bot.send_message(OWNER, "❓ Unknown command. Please send /retry /change /skip /stoped.")
+
+                # ✅ Continue only if success
+                if mpd and keys:
+                    url = mpd
+                    keys_string = " ".join([f"--key {key}" for key in keys])
+
 
                 
             
