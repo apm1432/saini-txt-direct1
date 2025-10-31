@@ -435,7 +435,7 @@ async def drm_handler(bot: Client, m: Message):
                 # 🚨 If failed 5 times
                 while not mpd or not keys:
                     # ✅ Use heartbeat wait instead of static message
-                    cmd = await wait_with_heartbeat(bot, OWNER, url)
+                    cmd = await wait_with_heartbeat(bot, m.from_user.id, url)
                     cmd = cmd.lower()
 
                #     await bot.send_message(
