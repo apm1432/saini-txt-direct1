@@ -366,23 +366,37 @@ async def drm_handler(bot: Client, m: Message):
                                 await status_msg.edit(
                                     f"⚠️ Attempt {attempt+1}/{retries} failed.\nRetrying in {delay}s..."
                                 )
-
+                        
                         except Exception as e:
-                            await status_msg.edit(
-                                f"⚠️ Error on attempt {attempt+1}/{retries}:\n{e}\nRetrying in {delay}s..."
-                            )
+                            if status_msg:
+                                try:
+                                    await status_msg.edit(
+                                        f"⚠️ Error on attempt {attempt+1}/{retries}:\n{e}\nRetrying in {delay}s..."
+                                    )
+                                except:
+                                    pass
 
                         await asyncio.sleep(delay)
 
-                    # ✅ All failed
-                    await status_msg.edit("❌ All retries failed.")
-                    await asyncio.sleep(3)
-                    try:
-                        await status_msg.delete()
-                    except:
-                        pass
+                        # ✅ All failed (safe edit)
+                        if status_msg:
+                            try:
+                                await status_msg.edit("❌ All retries failed.")
+                            except:
+                                pass
 
-                    return None, None
+                        await asyncio.sleep(3)
+
+                        # ✅ Safe delete
+                        try:
+                            if status_msg:
+                                await status_msg.delete()
+                        except:
+                            pass
+
+                        status_msg = None  # ✅ MOST IMPORTANT FIX
+
+                        return None, None
 
                 
 
