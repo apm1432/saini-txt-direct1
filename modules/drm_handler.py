@@ -392,9 +392,9 @@ async def drm_handler(bot: Client, m: Message):
                 # 🚨 If failed 5 times
                 while not mpd or not keys:    
                     await bot.send_message(
-                        OWNER,
-                       f"❌ All retries failed for link:\n{url}\n\n"
-                       "Please reply with one of the following commands:\n"
+                        m.from_user.id,
+                        f"❌ All retries failed for link:\n{url}\n\n"
+                        "Please reply with one of the following commands:\n"
                         "• `/retry` → Try same API again\n"
                         "• `/change` → Change API (new or saved)\n"
                         "• `/skip` → Skip this link\n"
