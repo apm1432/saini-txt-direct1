@@ -410,7 +410,7 @@ async def drm_handler(bot: Client, m: Message):
                             )
 
                             choice_msg: Message = await bot.listen(OWNER, timeout=None)
-                        try:
+                            try:
                                 choice = int(choice_msg.text.strip()) - 1
                                 if 0 <= choice < len(SAVED_APIS):
                                     current_api_index = choice
