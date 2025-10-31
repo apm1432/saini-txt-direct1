@@ -378,26 +378,6 @@ async def drm_handler(bot: Client, m: Message):
 
                         await asyncio.sleep(delay)
 
-                        # ✅ All failed (safe edit)
-                        if status_msg:
-                            try:
-                                await status_msg.edit("❌ All retries failed.")
-                            except:
-                                pass
-
-                        await asyncio.sleep(3)
-
-                        # ✅ Safe delete
-                        try:
-                            if status_msg:
-                                await status_msg.delete()
-                        except:
-                            pass
-
-                        status_msg = None  # ✅ MOST IMPORTANT FIX
-
-                        return None, None
-
                 
 
                 # 🔁 First try with default API
@@ -441,7 +421,7 @@ async def drm_handler(bot: Client, m: Message):
                             "Reply with: `/new` or `/saved`"
                         )
 
-                        mode_msg: Message = await bot.listen(OWNER, timeout=None)
+                        mode_msg: Message = await bot.listen(m.from_user.id, timeout=None)
                         mode = mode_msg.text.strip().lower()
 
                         if mode == "/new":
@@ -471,7 +451,7 @@ async def drm_handler(bot: Client, m: Message):
                                 "Reply with the number (1, 2, 3...) to choose."
                             )
 
-                            choice_msg: Message = await bot.listen(OWNER, timeout=None)
+                            choice_msg: Message = await bot.listen(m.from_user.id, timeout=None)
                             try:
                                 choice = int(choice_msg.text.strip()) - 1
                                 if 0 <= choice < len(SAVED_APIS):
