@@ -44,6 +44,8 @@ from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_U
 from vars import api_url, api_token
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+
+
 async def wait_with_heartbeat(bot, chat_id, url):
     prompt = (
         f"❌ All retries failed for link:\n{url}\n\n"
@@ -54,15 +56,17 @@ async def wait_with_heartbeat(bot, chat_id, url):
         "• `/stoped` → Stop all processing"
     )
 
+    # ✅ First message send
     wait_msg = await bot.send_message(chat_id, prompt)
-    minutes = 0
+
+    seconds = 0
 
     while True:
         try:
-            # ✅ wait 5 minutes for user reply
-            reply = await bot.listen(chat_id, timeout=300)
+            # ✅ Wait 10 seconds for user reply
+            reply = await bot.listen(chat_id, timeout=10)
 
-            # ✅ User replied → delete message
+            # ✅ Delete heartbeat message when user replies
             try:
                 await wait_msg.delete()
             except:
@@ -71,15 +75,18 @@ async def wait_with_heartbeat(bot, chat_id, url):
             return reply.text.strip()
 
         except asyncio.TimeoutError:
-            # ✅ every 5 min edit same message
-            minutes += 5
+            # ✅ No reply → edit same message
+            seconds += 10
             try:
                 await wait_msg.edit(
-                    prompt + f"\n\n⏳ Still waiting... {minutes} minutes passed."
+                    prompt + f"\n\n⏳ Still waiting… {seconds} sec passed."
                 )
-            except:
-                pass
-
+            except Exception as e:
+                # ✅ Do NOT stop function
+                # ✅ Do NOT return None
+                # ✅ Continue heartbeat safely
+                print("EDIT ERROR:", e)
+                continue
 
 
 async def drm_handler(bot: Client, m: Message):
