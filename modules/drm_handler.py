@@ -44,6 +44,42 @@ from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_U
 from vars import api_url, api_token
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+async def wait_with_heartbeat(bot, chat_id, url):
+    prompt = (
+        f"❌ All retries failed for link:\n{url}\n\n"
+        "Please reply with one of the following commands:\n"
+        "• `/retry` → Try same API again\n"
+        "• `/change` → Change API (new or saved)\n"
+        "• `/skip` → Skip this link\n"
+        "• `/stoped` → Stop all processing"
+    )
+
+    wait_msg = await bot.send_message(chat_id, prompt)
+    minutes = 0
+
+    while True:
+        try:
+            # ✅ wait 5 minutes for user reply
+            reply = await bot.listen(chat_id, timeout=300)
+
+            # ✅ User replied → delete message
+            try:
+                await wait_msg.delete()
+            except:
+                pass
+
+            return reply.text.strip()
+
+        except asyncio.TimeoutError:
+            # ✅ every 5 min edit same message
+            minutes += 5
+            try:
+                await wait_msg.edit(
+                    prompt + f"\n\n⏳ Still waiting... {minutes} minutes passed."
+                )
+            except:
+                pass
+
 
 
 async def drm_handler(bot: Client, m: Message):
@@ -391,18 +427,22 @@ async def drm_handler(bot: Client, m: Message):
 
                 # 🚨 If failed 5 times
                 while not mpd or not keys:
-                    await bot.send_message(
-                        OWNER,
-                       f"❌ All retries failed for link:\n{url}\n\n"
-                       "Please reply with one of the following commands:\n"
-                        "• `/retry` → Try same API again\n"
-                        "• `/change` → Change API (new or saved)\n"
-                        "• `/skip` → Skip this link\n"
-                        "• `/stoped` → Stop all processing"
-                    )
+                    # ✅ Use heartbeat wait instead of static message
+                    cmd = await wait_with_heartbeat(bot, OWNER, url)
+                    cmd = cmd.lower()
 
-                    new_msg: Message = await bot.listen(OWNER, timeout=None)
-                    cmd = new_msg.text.strip().lower()
+               #     await bot.send_message(
+                #        OWNER,
+                 #      f"❌ All retries failed for link:\n{url}\n\n"
+                  #     "Please reply with one of the following commands:\n"
+                   #     "• `/retry` → Try same API again\n"
+                    #    "• `/change` → Change API (new or saved)\n"
+                     #   "• `/skip` → Skip this link\n"
+                      #  "• `/stoped` → Stop all processing"
+                    #)
+
+                   # new_msg: Message = await bot.listen(OWNER, timeout=None)
+                    #cmd = new_msg.text.strip().lower()
 
                     if cmd == "/stoped":
                         await bot.send_message(OWNER, "⏹️ Process stopped by owner.")
