@@ -326,17 +326,40 @@ async def drm_handler(bot: Client, m: Message):
                     """Helper: Try same API several times"""
                     for attempt in range(retries):
                         try:
-                            formatted_api = api_template.format(url=urllib.parse.quote(url))
+                            formatted_api = api_template
+
+                            # 🌐 replace only if placeholder exists in string
+                            if "{url}" in formatted_api:
+                                formatted_api = formatted_api.replace("{url}", urllib.parse.quote(url))
+
+                            if "{cptoken}" in formatted_api:
+                                formatted_api = formatted_api.replace("{cptoken}", str(cptoken))
+
+                            if "{OWNER}" in formatted_api:
+                                formatted_api = formatted_api.replace("{OWNER}", str(OWNER))
+
+                            # 🔍 आता तयार झालेलं final URL वापर
                             mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
+
                             if mpd_local and keys_local:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
                             else:
-                                await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
+                                await bot.send_message(
+                                    m.from_user.id,
+                                    f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s..."
+                                )
+
                         except Exception as e:
-                            await bot.send_message(m.from_user.id, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
+                            await bot.send_message(
+                                m.from_user.id,
+                                f"⚠️ Error on attempt {attempt+1}/{retries}: {e}"
+                            )
+
                         await asyncio.sleep(delay)
+
                     return None, None
+
 
                 # 🔁 First try with default API
                 mpd, keys = await try_api(current_api)
