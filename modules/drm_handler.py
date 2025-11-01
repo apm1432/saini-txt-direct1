@@ -442,7 +442,7 @@ async def drm_handler(bot: Client, m: Message):
                 # ✅ Ensure correct prefix
                 url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
 
-                mpd, keys = None, None
+                mpd = None
                 SAVED_APIS_FILE = "saved_apis.json"
 
                 # ✅ Load saved APIs (persistent memory)
@@ -471,22 +471,22 @@ async def drm_handler(bot: Client, m: Message):
                     for attempt in range(retries):
                         try:
                             formatted_api = api_template.format(url=urllib.parse.quote(url))
-                            mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
-                            if mpd_local and keys_local:
+                            mpd_local, keys_local = helper.get_mps_and_keys3(formatted_api)
+                            if mpd :
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
-                                return mpd_local, keys_local
+                                return mpd
                             else:
                                 await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
                         except Exception as e:
                             await bot.send_message(m.from_user.id, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
                         await asyncio.sleep(delay)
-                    return None, None
+                    return None
 
                 # 🔁 First try with default API
                 mpd, keys = await try_api(current_api)
 
                 # 🚨 If failed 5 times
-                while not mpd or not keys:
+                while not mpd:
                     await bot.send_message(
                         m.from_user.id,
                        f"❌ All retries failed for link:\n{url}\n\n"
@@ -508,7 +508,7 @@ async def drm_handler(bot: Client, m: Message):
 
                     elif cmd == "/skip":
                         await bot.send_message(m.from_user.id, "⏭️ Skipping this link...")
-                        return
+                        continue
 
                     elif cmd == "/retry":
                         await bot.send_message(m.from_user.id, f"🔁 Retrying same API again (#{current_api_index+1})...")
@@ -562,7 +562,7 @@ async def drm_handler(bot: Client, m: Message):
                                     current_api = SAVED_APIS[current_api_index]
                                     await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
                                     mpd, keys = await try_api(current_api)
-                                    if mpd and keys:
+                                    if mpd:
                                         break
                                     else:
                                         await bot.send_message(m.from_user.id, "❌ This saved API also failed. Try another or `/new`.")
@@ -577,9 +577,9 @@ async def drm_handler(bot: Client, m: Message):
                         await bot.send_message(m.from_user.id, "❓ Unknown command. Please send /retry /change /skip /stoped.")
 
                 # ✅ Continue only if success
-                if mpd and keys:
+                if mpd:
                     url = mpd
-                    keys_string = " ".join([f"--key {key}" for key in keys])
+                    
 
 
             
