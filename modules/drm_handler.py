@@ -483,7 +483,7 @@ async def drm_handler(bot: Client, m: Message):
                     return None
 
                 # 🔁 First try with default API
-                mpd, keys = await try_api(current_api)
+                mpd = await try_api(current_api)
 
                 # 🚨 If failed 5 times
                 while not mpd:
@@ -512,7 +512,7 @@ async def drm_handler(bot: Client, m: Message):
 
                     elif cmd == "/retry":
                         await bot.send_message(m.from_user.id, f"🔁 Retrying same API again (#{current_api_index+1})...")
-                        mpd, keys = await try_api(current_api)
+                        mpd = await try_api(current_api)
                         if mpd:
                             break
 
@@ -539,7 +539,7 @@ async def drm_handler(bot: Client, m: Message):
 
                             current_api = new_api
                             await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
-                            mpd, keys = await try_api(current_api)
+                            mpd = await try_api(current_api)
                             if mpd:
                                 break
 
@@ -561,7 +561,7 @@ async def drm_handler(bot: Client, m: Message):
                                     current_api_index = choice
                                     current_api = SAVED_APIS[current_api_index]
                                     await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
-                                    mpd, keys = await try_api(current_api)
+                                    mpd = await try_api(current_api)
                                     if mpd:
                                         break
                                     else:
