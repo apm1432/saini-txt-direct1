@@ -394,26 +394,26 @@ def register_settings_handlers(bot):
             await editable.edit(f"<b>❌ Failed to set Topic in Caption:</b>\n<blockquote expandable>{str(e)}</blockquote>", reply_markup=keyboard)
         finally:
             await input_msg.delete()
-# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
-    # ----------------- API Manager for Settings Panel -----------------
 
-SAVED_APIS_FILE = "saved_apis.json"
+# ----------------- API Manager for Settings Panel -----------------
 
-def load_apis():
-    if os.path.exists(SAVED_APIS_FILE):
-        with open(SAVED_APIS_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except:
-                return []
-    return []
+    SAVED_APIS_FILE = "saved_apis.json"
 
-def save_apis(data):
-    with open(SAVED_APIS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    def load_apis():
+        if os.path.exists(SAVED_APIS_FILE):
+            with open(SAVED_APIS_FILE, "r") as f:
+                try:
+                    return json.load(f)
+                except:
+                    return []
+        return []
+
+    def save_apis(data):
+        with open(SAVED_APIS_FILE, "w") as f:
+            json.dump(data, f, indent=2)
 
 
-# Callback to open Manage APIs menu (from Settings)
+    # Callback to open Manage APIs menu (from Settings)
     @bot.on_callback_query(filters.regex("manage_apis"))
     async def manage_apis_cb(client, cq):
         user_id = cq.from_user.id
