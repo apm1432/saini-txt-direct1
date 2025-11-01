@@ -42,8 +42,6 @@ import globals
 from utils import progress_bar
 from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_USERS, cookies_file_path
 from vars import api_url, api_token
-from saini import get_mps_and_keys2, get_mps_and_keys3
-
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
 
@@ -310,7 +308,7 @@ async def drm_handler(bot: Client, m: Message):
                 else:
                     SAVED_APIS = [
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
+                        "https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={cptoken}",
                         "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
@@ -324,34 +322,13 @@ async def drm_handler(bot: Client, m: Message):
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
-                async def format_api(api_template):
-                    # ✅ URL encode
-                    formatted = api_template.replace("{url}", urllib.parse.quote(url))
-
-                    # ✅ Safe cptoken fetch (use only if defined globally or locally)
-                    token_value = globals().get("cptoken", None)
-                    if token_value:
-                        formatted = formatted.replace("{cptoken}", str(token_value))
-                    else:
-                        formatted = formatted.replace("{cptoken}", "")
-
-                    # ✅ Safe OWNER fetch
-                    owner_value = globals().get("OWNER", None)
-                    if owner_value:
-                        formatted = formatted.replace("{OWNER}", str(owner_value))
-                    else:
-                        formatted = formatted.replace("{OWNER}", "")
-
-                    return formatted
-
-
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
                     for attempt in range(retries):
                         try:
-                            formatted_api = await format_api(api_template)
-                            mpd, keys = get_mps_and_keys2(formatted_api)
-                            if mpd and keys:
+                            formatted_api = api_template.format(url=urllib.parse.quote(url))
+                            mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
+                            if mpd_local and keys_local:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
                             else:
@@ -368,12 +345,13 @@ async def drm_handler(bot: Client, m: Message):
                 while not mpd or not keys:
                     await bot.send_message(
                         m.from_user.id,
-                        f"❌ All retries failed for link:\n{url}\n\n"
-                        "Please reply with one of the following commands:\n"
+                       f"❌ All retries failed for link:\n{url}\n\n"
+                       "Please reply with one of the following commands:\n"
                         "• `/retry` → Try same API again\n"
                         "• `/change` → Change API (new or saved)\n"
                         "• `/skip` → Skip this link\n"
                         "• `/stoped` → Stop all processing"
+                        "• send /retry /change /skip /stoped."
                     )
 
                     new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
@@ -395,8 +373,9 @@ async def drm_handler(bot: Client, m: Message):
                             break
 
                     elif cmd == "/change":
+                        # 🧭 Ask if user wants to enter a new API or use saved ones
                         await bot.send_message(
-                            m.from_user.id,
+                        m.from_user.id,
                             "🔄 Do you want to use a **new API** or a **saved API**?\n"
                             "Reply with: `/new` or `/saved`"
                         )
@@ -407,23 +386,24 @@ async def drm_handler(bot: Client, m: Message):
                         if mode == "/new":
                             # 🆕 User enters a new API manually
                             await bot.send_message(m.from_user.id, "✏️ Send the new API URL:")
-                            new_api_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
                             new_api = new_api_msg.text.strip()
 
-                            # Replace placeholders dynamically
-                            formatted_api = await format_api(new_api)
+                            # 🧠 Save new API for future
                             SAVED_APIS.append(new_api)
                             await save_apis()
 
                             current_api = new_api
-                            await bot.send_message(m.from_user.id, f"✅ New API saved & selected:\n<code>{formatted_api}</code>\nRetrying...")
+                            await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
                             mpd, keys = await try_api(current_api)
                             if mpd and keys:
                                 break
 
                         elif mode == "/saved":
                             # 📋 Show saved list
-                            api_list_text = "\n".join([f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)])
+                            api_list_text = "\n".join(
+                                [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
+                            )
                             await bot.send_message(
                                 m.from_user.id,
                                 f"🌐 Saved APIs:\n{api_list_text}\n\n"
@@ -436,7 +416,7 @@ async def drm_handler(bot: Client, m: Message):
                                 if 0 <= choice < len(SAVED_APIS):
                                     current_api_index = choice
                                     current_api = SAVED_APIS[current_api_index]
-                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying...")
+                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
                                     mpd, keys = await try_api(current_api)
                                     if mpd and keys:
                                         break
@@ -457,17 +437,11 @@ async def drm_handler(bot: Client, m: Message):
                     url = mpd
                     keys_string = " ".join([f"--key {key}" for key in keys])
 
-            
 
-            elif (
-                'media-cdn.classplusapp.com' in url
-                or "media-cdn.classplusapp.com" in url and ("cc/" in url or "lc/" in url or "tencent/" in url or "drm/" in url)
-                or 'media-cdn-alisg.classplusapp.com' in url
-                or 'media-cdn-a.classplusapp.com' in url
-            ):
+            elif 'media-cdn.classplusapp.com' in url or "media-cdn.classplusapp.com" in url and ("cc/" in url or "lc/" in url or "tencent/" in url or "drm/" in url) or'media-cdn-alisg.classplusapp.com' in url or 'media-cdn-a.classplusapp.com' in url : 
                 # ✅ Ensure correct prefix
                 url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
-            
+
                 mpd = None
                 SAVED_APIS_FILE = "saved_apis.json"
 
@@ -478,7 +452,7 @@ async def drm_handler(bot: Client, m: Message):
                 else:
                     SAVED_APIS = [
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
+                        "https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={cptoken}",
                         "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
@@ -492,35 +466,15 @@ async def drm_handler(bot: Client, m: Message):
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
-                async def format_api(api_template):
-                    # ✅ URL encode
-                    formatted = api_template.replace("{url}", urllib.parse.quote(url))
-
-                    # ✅ Safe cptoken fetch (use only if defined globally or locally)
-                    token_value = globals().get("cptoken", None)
-                    if token_value:
-                        formatted = formatted.replace("{cptoken}", str(token_value))
-                    else:
-                        formatted = formatted.replace("{cptoken}", "")
-
-                    # ✅ Safe OWNER fetch
-                    owner_value = globals().get("OWNER", None)
-                    if owner_value:
-                        formatted = formatted.replace("{OWNER}", str(owner_value))
-                    else:
-                        formatted = formatted.replace("{OWNER}", "")
-
-                    return formatted
-
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
                     for attempt in range(retries):
                         try:
-                            formatted_api = await format_api(api_template)
-                            mpd_local = get_mps_and_keys3(formatted_api)
-                            if mpd_local:
+                            formatted_api = api_template.format(url=urllib.parse.quote(url))
+                            mpd = helper.get_mps_and_keys3(formatted_api)
+                            if mpd :
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
-                                return mpd_local
+                                return mpd
                             else:
                                 await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
                         except Exception as e:
@@ -535,12 +489,13 @@ async def drm_handler(bot: Client, m: Message):
                 while not mpd:
                     await bot.send_message(
                         m.from_user.id,
-                        f"❌ All retries failed for link:\n{url}\n\n"
-                        "Please reply with one of the following commands:\n"
+                       f"❌ All retries failed for link:\n{url}\n\n"
+                       "Please reply with one of the following commands:\n"
                         "• `/retry` → Try same API again\n"
                         "• `/change` → Change API (new or saved)\n"
                         "• `/skip` → Skip this link\n"
                         "• `/stoped` → Stop all processing"
+                        "• send /retry /change /skip /stoped."
                     )
 
                     new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
@@ -562,8 +517,9 @@ async def drm_handler(bot: Client, m: Message):
                             break
 
                     elif cmd == "/change":
+                        # 🧭 Ask if user wants to enter a new API or use saved ones
                         await bot.send_message(
-                            m.from_user.id,
+                        m.from_user.id,
                             "🔄 Do you want to use a **new API** or a **saved API**?\n"
                             "Reply with: `/new` or `/saved`"
                         )
@@ -574,23 +530,24 @@ async def drm_handler(bot: Client, m: Message):
                         if mode == "/new":
                             # 🆕 User enters a new API manually
                             await bot.send_message(m.from_user.id, "✏️ Send the new API URL:")
-                            new_api_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
                             new_api = new_api_msg.text.strip()
 
-                            # Replace placeholders dynamically
-                            formatted_api = await format_api(new_api)
+                            # 🧠 Save new API for future
                             SAVED_APIS.append(new_api)
                             await save_apis()
 
                             current_api = new_api
-                            await bot.send_message(m.from_user.id, f"✅ New API saved & selected:\n<code>{formatted_api}</code>\nRetrying...")
+                            await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
                             mpd = await try_api(current_api)
                             if mpd:
                                 break
 
                         elif mode == "/saved":
                             # 📋 Show saved list
-                            api_list_text = "\n".join([f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)])
+                            api_list_text = "\n".join(
+                                [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
+                            )
                             await bot.send_message(
                                 m.from_user.id,
                                 f"🌐 Saved APIs:\n{api_list_text}\n\n"
@@ -603,7 +560,7 @@ async def drm_handler(bot: Client, m: Message):
                                 if 0 <= choice < len(SAVED_APIS):
                                     current_api_index = choice
                                     current_api = SAVED_APIS[current_api_index]
-                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying...")
+                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
                                     mpd = await try_api(current_api)
                                     if mpd:
                                         break
@@ -622,7 +579,10 @@ async def drm_handler(bot: Client, m: Message):
                 # ✅ Continue only if success
                 if mpd:
                     url = mpd
+                    
 
+
+            
             elif "videos.classplusapp" in url :
 
                 token_used = None
