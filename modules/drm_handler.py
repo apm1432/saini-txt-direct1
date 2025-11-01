@@ -496,7 +496,7 @@ async def drm_handler(bot: Client, m: Message):
                                  await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
                                  return mpd_local
                              await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
-                         except Exception as e::
+                         except Exception as e:
                              await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
                          await asyncio.sleep(delay)
                      return None
