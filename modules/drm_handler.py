@@ -337,58 +337,38 @@ async def drm_handler(bot: Client, m: Message):
                         json.dump(SAVED_APIS, f, indent=2)
 
                 # ✅ CLEANED try_api()
-                # ✅ CLEANED try_api() — AUTO SELECT FUNCTION
-                async def try_api(api_template, retries=2, delay=8):
-                    for attempt in range(retries):
-                        current_cptoken = globals.cptokens[0] if globals.cptokens else ""
-                        encoded_url = urllib.parse.quote(url)
+                async def try_api(api_template, retries=5, delay=10):
+                     for attempt in range(retries):
+                         current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                         encoded_url = urllib.parse.quote(url)
 
-                        try:
-                            formatted_api = api_template.format_map(
-                                SafeDict(
-                                    url=encoded_url,
-                                    cptoken=current_cptoken,
-                                    OWNER=OWNER
-                                )
-                            )
+                         try:
+                             formatted_api = api_template.format_map(
+                                 SafeDict(
+                                     url=encoded_url,
+                                     cptoken=current_cptoken,
+                                     OWNER=OWNER
+                                 )
+                             )
 
-                            # 🔄 AUTO detect whether to use get_mps_and_keys2 or get_mps_and_keys3
-                            if "{cptoken}" in api_template or "token=" in api_template:
-                                mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
-                            else:
-                                result = helper.get_mps_and_keys3(formatted_api)
-                                if isinstance(result, tuple):
-                                    mpd_local, keys_local = result
-                                else:
-                                    mpd_local, keys_local = result, None
+                             mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
 
-                            # ✅ SUCCESS CONDITION
-                            if mpd_local and (keys_local or not ("{cptoken}" in api_template or "token=" in api_template)):
-                                msg = await bot.send_message(
-                                    m.from_user.id,
-                                    f"✅ Got keys successfully on attempt {attempt+1}"
-                                )
-                                await asyncio.sleep(2)
-                                await bot.delete_messages(m.chat.id, msg.id)
-                                return mpd_local, keys_local
+                             if mpd_local and keys_local:
+                                 msg = await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
+                                 await asyncio.sleep(2)
+                                 await bot.delete_messages(m.chat.id, msg.id)
+                                 return mpd_local, keys_local
 
-                            # ⚠️ Retry message
-                            msg = await bot.send_message(
-                                m.from_user.id,
-                                f"⚠️ Attempt {attempt+1}/{retries} failed — retrying..."
-                            )
-                            await asyncio.sleep(2)
-                            await bot.delete_messages(m.chat.id, msg.id)
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
+                         except Exception as e:
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
+                         await asyncio.sleep(delay)
 
-                        except Exception as e:
-                            msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                            await asyncio.sleep(2)
-                            await bot.delete_messages(m.chat.id, msg.id)
-
-                        await asyncio.sleep(delay)
-
-                    return None, None
-
+                     return None, None
 
                 # ✅ ADD THIS FUNCTION BELOW try_api()
                 async def auto_try_all_apis():
@@ -437,6 +417,7 @@ async def drm_handler(bot: Client, m: Message):
                         "• /change → Change API (new/saved)\n"
                         "• /skip → Skip link\n"
                         "• /stoped → Stop process"
+                       
                     )
 
                     new_msg = await bot.listen(m.from_user.id)
@@ -579,13 +560,14 @@ async def drm_handler(bot: Client, m: Message):
                    with open(SAVED_APIS_FILE, "w") as f:
                        json.dump(SAVED_APIS, f, indent=2)
 
-               # ✅ CLEANED try_api() — AUTO SELECT FUNCTION
-               async def try_api(api_template, retries=2, delay=8):
-                    for attempt in range(retries):
-                        current_cptoken = globals.cptokens[0] if globals.cptokens else ""
-                        encoded_url = urllib.parse.quote(url)
+               # ✅ Try 1 API with retries
+               async def try_api(api_template, retries=5, delay=5):
+                   for attempt in range(retries):
 
-                        try:
+                       current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                       encoded_url = urllib.parse.quote(url)
+           
+                       try:
                            formatted_api = api_template.format_map(
                                SafeDict(
                                    url=encoded_url,
@@ -593,64 +575,51 @@ async def drm_handler(bot: Client, m: Message):
                                    OWNER=OWNER
                                )
                            )
- 
-                            # ✅ Detect correct function
-                           if "{cptoken}" in api_template or "token=" in api_template:
-                               mpd_local = helper.get_mps_and_keys3(formatted_api)
-                           else:
-                               mpd_local = helper.get_mps_and_keys3(formatted_api)
- 
-                            # ✅ SUCCESS
+
+                           mpd_local = helper.get_mps_and_keys3(formatted_api)
+
                            if mpd_local:
-                               msg = await bot.send_message(
-                                   m.from_user.id,
-                                   f"✅ Got MPD on attempt {attempt+1}"
-                               )
+                               msg = await bot.send_message(m.from_user.id, f"✅ API SUCCESS (attempt {attempt+1})")
                                await asyncio.sleep(1)
                                await bot.delete_messages(m.chat.id, msg.id)
                                return mpd_local
- 
-                           # ❌ FAIL retry message
-                           msg = await bot.send_message(
-                               m.from_user.id,
-                               f"⚠️ Failed attempt {attempt+1}/{retries} — retrying..."
-                           )
+
+                           msg = await bot.send_message(m.from_user.id, f"⚠️ API failed (attempt {attempt+1})")
                            await asyncio.sleep(1)
                            await bot.delete_messages(m.chat.id, msg.id)
 
-                        except Exception as e:
-                            msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                            await asyncio.sleep(2)
-                            await bot.delete_messages(m.chat.id, msg.id)
+                       except Exception as e:
+                           msg = await bot.send_message(m.from_user.id, f"❌ Error: {e}")
+                           await asyncio.sleep(1)
+                           await bot.delete_messages(m.chat.id, msg.id)
 
-                        await asyncio.sleep(delay)
+                       await asyncio.sleep(delay)
 
-                    return None
+                   return None
 
+               # ✅ Try all APIs (correct order)
+               async def auto_try_all_apis():
+                   api_list = SAVED_APIS.copy()
 
-                          # ✅ Try all APIs (correct order)
-                          async def auto_try_all_apis():
-                              api_list = SAVED_APIS.copy()
+                   # ✅ working API try first
+                   if hasattr(globals, "current_api") and globals.current_api:
+                       if globals.current_api in api_list:
+                           api_list.remove(globals.current_api)
+                       api_list.insert(0, globals.current_api)
 
-                              # ✅ working API try first
-                              if hasattr(globals, "current_api") and globals.current_api:
-                                  if globals.current_api in api_list:
-                                      api_list.remove(globals.current_api)
-                                  api_list.insert(0, globals.current_api)
+                   for idx, api_template in enumerate(api_list):
 
-                              for idx, api_template in enumerate(api_list):
+                       msg = await bot.send_message(m.from_user.id, f"🔁 Trying API #{idx+1}...")
+                       await asyncio.sleep(1)
+                       await bot.delete_messages(m.chat.id, msg.id)
 
-                                  msg = await bot.send_message(m.from_user.id, f"🔁 Trying API #{idx+1}...")
-                                  await asyncio.sleep(1)
-                                  await bot.delete_messages(m.chat.id, msg.id)
-
-                                  mpd_local = await try_api(api_template)
+                       mpd_local = await try_api(api_template)
            
-                                  if mpd_local:
-                                      globals.current_api = api_template  # ✅ save working API
-                                      return mpd_local
+                       if mpd_local:
+                           globals.current_api = api_template  # ✅ save working API
+                           return mpd_local
 
-                              return None
+                   return None
 
                # ✅ FIRST TRY → try all APIs
                mpd = await auto_try_all_apis()
