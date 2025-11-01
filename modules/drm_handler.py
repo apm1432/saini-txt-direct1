@@ -295,13 +295,16 @@ async def drm_handler(bot: Client, m: Message):
 
 
             elif "https://cpvod.testbook.com/" in url or "classplusapp.com/drm/" in url:
-                # ✅ Ensure correct prefix
-                url = url.replace("https://cpvod.testbook.com/", "https://media-cdn.classplusapp.com/drm/")
+                # ✅ Correct prefix
+                url = url.replace(
+                    "https://cpvod.testbook.com/",
+                    "https://media-cdn.classplusapp.com/drm/"
+                )
 
                 mpd, keys = None, None
                 SAVED_APIS_FILE = "saved_apis.json"
 
-                # ✅ Load saved APIs (persistent memory)
+                # ✅ Load saved APIs
                 if os.path.exists(SAVED_APIS_FILE):
                     with open(SAVED_APIS_FILE, "r") as f:
                         SAVED_APIS = json.load(f)
@@ -309,7 +312,7 @@ async def drm_handler(bot: Client, m: Message):
                     SAVED_APIS = [
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
                         "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
-                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
+                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}&user_id={OWNER}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
@@ -318,127 +321,141 @@ async def drm_handler(bot: Client, m: Message):
                 current_api = SAVED_APIS[current_api_index]
 
                 async def save_apis():
-                    """Save updated API list to file"""
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
+                # ✅ CLEANED try_api()
                 async def try_api(api_template, retries=5, delay=10):
-                    """Helper: Try same API several times"""
-                    # ✅ ADD THIS LINE
-                    current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                    """Try same API multiple times"""
+
                     for attempt in range(retries):
+
+                        # ✅ Fetch token from globals
+                        current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+
+                        # ✅ Encode real URL ONLY
+                        encoded_url = urllib.parse.quote(url)
+
                         try:
-                            formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
+                            # ✅ Replace placeholders ONLY
+                            formatted_api = api_template.format(
+                                url=encoded_url,
+                                cptoken=current_cptoken,
+                                OWNER=OWNER
+                            )
+
                             mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
+
                             if mpd_local and keys_local:
-                                await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
+                                await bot.send_message(
+                                    m.from_user.id,
+                                    f"✅ Got keys on attempt {attempt + 1}"
+                                )
                                 return mpd_local, keys_local
-                            else:
-                                await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
+
+                            await bot.send_message(
+                                m.from_user.id,
+                                f"⚠️ Attempt {attempt+1}/{retries} failed — retrying..."
+                            )
+
                         except Exception as e:
-                            await bot.send_message(m.from_user.id, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
+                            await bot.send_message(
+                                m.from_user.id,
+                                f"⚠️ Error attempt {attempt+1}: {e}"
+                            )
+
                         await asyncio.sleep(delay)
+
                     return None, None
 
-                # 🔁 First try with default API
+                # ✅ First API try
                 mpd, keys = await try_api(current_api)
 
-                # 🚨 If failed 5 times
+                # ✅ If failed 5 times
                 while not mpd or not keys:
+
                     await bot.send_message(
                         m.from_user.id,
-                       f"❌ All retries failed for link:\n{url}\n\n"
-                       "Please reply with one of the following commands:\n"
-                        "• `/retry` → Try same API again\n"
-                        "• `/change` → Change API (new or saved)\n"
-                        "• `/skip` → Skip this link\n"
-                        "• `/stoped` → Stop all processing"
-                        "• send /retry /change /skip /stoped."
+                        f"❌ All retries failed for:\n{url}\n\n"
+                        "Commands:\n"
+                        "• `/retry` → Retry same API\n"
+                        "• `/change` → Change API (new/saved)\n"
+                        "• `/skip` → Skip link\n"
+                        "• `/stoped` → Stop process"
                     )
 
-                    new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                    new_msg = await bot.listen(m.from_user.id)
                     cmd = new_msg.text.strip().lower()
 
                     if cmd == "/stoped":
-                        await bot.send_message(m.from_user.id, "⏹️ Process stopped by owner.")
+                        await bot.send_message(m.from_user.id, "⏹️ Process stopped.")
                         globals.cancel_requested = True
                         return
 
                     elif cmd == "/skip":
-                        await bot.send_message(m.from_user.id, "⏭️ Skipping this link...")
+                        await bot.send_message(m.from_user.id, "⏭️ Skipped.")
                         return
 
                     elif cmd == "/retry":
-                        await bot.send_message(m.from_user.id, f"🔁 Retrying same API again (#{current_api_index+1})...")
                         mpd, keys = await try_api(current_api)
                         if mpd and keys:
                             break
 
                     elif cmd == "/change":
-                        # 🧭 Ask if user wants to enter a new API or use saved ones
+
                         await bot.send_message(
-                        m.from_user.id,
-                            "🔄 Do you want to use a **new API** or a **saved API**?\n"
-                            "Reply with: `/new` or `/saved`"
+                            m.from_user.id,
+                            "Reply `/new` for new API or `/saved` to choose saved API."
                         )
 
-                        mode_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                        mode_msg = await bot.listen(m.from_user.id)
                         mode = mode_msg.text.strip().lower()
 
+                        # ✅ New API
                         if mode == "/new":
-                            # 🆕 User enters a new API manually
-                            await bot.send_message(m.from_user.id, "✏️ Send the new API URL:")
-                            new_api_msg: Message = await bot.listen(OWNER, timeout=None)
+                            await bot.send_message(m.from_user.id, "✏️ Send new API URL:")
+                            new_api_msg = await bot.listen(OWNER)
                             new_api = new_api_msg.text.strip()
 
-                            # 🧠 Save new API for future
                             SAVED_APIS.append(new_api)
                             await save_apis()
 
                             current_api = new_api
-                            await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
                             mpd, keys = await try_api(current_api)
                             if mpd and keys:
                                 break
 
+                        # ✅ Saved APIs
                         elif mode == "/saved":
-                            # 📋 Show saved list
-                            api_list_text = "\n".join(
-                                [f"{i+1}. {api.split('?')[0]}" for i, api in enumerate(SAVED_APIS)]
+                            api_list = "\n".join(
+                                [f"{i+1}. {api}" for i, api in enumerate(SAVED_APIS)]
                             )
+
                             await bot.send_message(
                                 m.from_user.id,
-                                f"🌐 Saved APIs:\n{api_list_text}\n\n"
-                                "Reply with the number (1, 2, 3...) to choose."
+                                f"Saved APIs:\n{api_list}\nSelect number:"
                             )
 
-                            choice_msg: Message = await bot.listen(m.from_user.id, timeout=None)
+                            choice_msg = await bot.listen(m.from_user.id)
+
                             try:
-                                choice = int(choice_msg.text.strip()) - 1
-                                if 0 <= choice < len(SAVED_APIS):
-                                    current_api_index = choice
-                                    current_api = SAVED_APIS[current_api_index]
-                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
-                                    mpd, keys = await try_api(current_api)
-                                    if mpd and keys:
-                                        break
-                                    else:
-                                        await bot.send_message(m.from_user.id, "❌ This saved API also failed. Try another or `/new`.")
-                                else:
-                                    await bot.send_message(m.from_user.id, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
-                            except ValueError:
-                                await bot.send_message(m.from_user.id, "⚠️ Invalid input. Send a number like 1, 2, or 3.")
-                        else:
-                            await bot.send_message(m.from_user.id, "⚠️ Please reply only with `/new` or `/saved`.")
+                                idx = int(choice_msg.text.strip()) - 1
+                                current_api = SAVED_APIS[idx]
+                                mpd, keys = await try_api(current_api)
+                                if mpd and keys:
+                                    break
+                            except:
+                                await bot.send_message(m.from_user.id, "⚠️ Invalid number.")
 
                     else:
-                        await bot.send_message(m.from_user.id, "❓ Unknown command. Please send /retry /change /skip /stoped.")
+                        await bot.send_message(m.from_user.id, "⚠️ Unknown command.")
 
-                # ✅ Continue only if success
+                # ✅ Success
                 if mpd and keys:
                     url = mpd
                     keys_string = " ".join([f"--key {key}" for key in keys])
 
+            
 
             elif 'media-cdn.classplusapp.com' in url or "media-cdn.classplusapp.com" in url and ("cc/" in url or "lc/" in url or "tencent/" in url or "drm/" in url) or'media-cdn-alisg.classplusapp.com' in url or 'media-cdn-a.classplusapp.com' in url : 
                 # ✅ Ensure correct prefix
