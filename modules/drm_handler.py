@@ -412,6 +412,9 @@ async def drm_handler(bot: Client, m: Message):
                             await save_apis()
 
                             current_api = new_api
+                            globals.current_api = new_api
+                            await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
+                            "🔁 This API will now be used automatically for all next URLs.")
                             mpd, keys = await try_api(current_api)
                             if mpd and keys:
                                 break
@@ -557,7 +560,9 @@ async def drm_handler(bot: Client, m: Message):
                             await save_apis()
 
                             current_api = new_api
-                            await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
+                            globals.current_api = new_api
+                            await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
+                            "🔁 This API will now be used automatically for all next URLs.")
                             mpd = await try_api(current_api)
                             if mpd:
                                 break
