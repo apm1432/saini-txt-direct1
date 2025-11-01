@@ -524,7 +524,7 @@ async def drm_handler(bot: Client, m: Message):
                     keys_string = " ".join([f"--key {key}" for key in keys])
 
             
-            dddd
+            
             elif 'media-cdn.classplusapp.com' in url or \
                 ("media-cdn.classplusapp.com" in url and ("cc/" in url or "lc/" in url or "tencent/" in url or "drm/" in url)) or \
                 'media-cdn-alisg.classplusapp.com' in url or \
