@@ -397,7 +397,7 @@ def register_settings_handlers(bot):
 
 # ----------------- API Manager for Settings Panel -----------------
 
-    SAVED_APIS_FILE = "saved_apis.json"
+    SAVED_APIS_FILE = "modules/saved_apis.json"
 
     def load_apis():
         if os.path.exists(SAVED_APIS_FILE):
