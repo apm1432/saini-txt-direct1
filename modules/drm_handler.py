@@ -476,21 +476,28 @@ async def drm_handler(bot: Client, m: Message):
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
+                # ✅ CLEANED try_api()
                 async def try_api(api_template, retries=5, delay=10):
-                    """Helper: Try same API several times"""
-                    # ✅ ADD THIS LINE
-                    current_cptoken = globals.cptokens[0] if globals.cptokens else ""
-                    for attempt in range(retries):
-                        try:
-                            formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
-                            mpd = helper.get_mps_and_keys3(formatted_api)
-                            if mpd :
-                                await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
-                                return mpd
-                            else:
-                                await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
-                        except Exception as e:
-                            await bot.send_message(m.from_user.id, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
+                     for attempt in range(retries):
+                         current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                         encoded_url = urllib.parse.quote(url)
+
+                         try:
+                             formatted_api = api_template.format_map(
+                                 SafeDict(
+                                     url=encoded_url,
+                                     cptoken=current_cptoken,
+                                     OWNER=OWNER
+                                 )
+                             )
+
+                            mpd_local = helper.get_mps_and_keys3(formatted_api)
+                            if mpd_local:
+                                await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
+                                return mpd_local
+                            await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                        except Exception as e::
+                            await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
                         await asyncio.sleep(delay)
                     return None
 
