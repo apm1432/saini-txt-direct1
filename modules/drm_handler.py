@@ -322,7 +322,11 @@ async def drm_handler(bot: Client, m: Message):
                         json.dump(SAVED_APIS, f, indent=2)
 
                 current_api_index = 0
-                current_api = SAVED_APIS[current_api_index]
+                if hasattr(globals, "current_api") and globals.current_api:
+                    current_api = globals.current_api
+                else:
+                    current_api = SAVED_APIS[current_api_index]
+             #   current_api = SAVED_APIS[current_api_index]
 
                 async def save_apis():
                     with open(SAVED_APIS_FILE, "w") as f:
@@ -435,6 +439,12 @@ async def drm_handler(bot: Client, m: Message):
                             try:
                                 idx = int(choice_msg.text.strip()) - 1
                                 current_api = SAVED_APIS[idx]
+                                globals.current_api = current_api
+                                await bot.send_message(
+                                    m.from_user.id,
+                                    f"✅ Using saved API #{idx+1}.\n"
+                                    "🔁 This API will now be used automatically for all next URLs."
+                                )
                                 mpd, keys = await try_api(current_api)
                                 if mpd and keys:
                                     break
@@ -472,7 +482,12 @@ async def drm_handler(bot: Client, m: Message):
                         json.dump(SAVED_APIS, f, indent=2)
 
                 current_api_index = 0
-                current_api = SAVED_APIS[current_api_index]
+                current_api_index = 0
+                if hasattr(globals, "current_api") and globals.current_api:
+                    current_api = globals.current_api
+                else:
+                    current_api = SAVED_APIS[current_api_index]
+              #  current_api = SAVED_APIS[current_api_index]
 
                 async def save_apis():
                     """Save updated API list to file"""
@@ -584,7 +599,8 @@ async def drm_handler(bot: Client, m: Message):
                                 if 0 <= choice < len(SAVED_APIS):
                                     current_api_index = choice
                                     current_api = SAVED_APIS[current_api_index]
-                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Retrying 5 times...")
+                                    globals.current_api = current_api
+                                    await bot.send_message(m.from_user.id, f"🔁 Using saved API #{choice+1}. Used automatically for all next...")
                                     mpd = await try_api(current_api)
                                     if mpd:
                                         break
