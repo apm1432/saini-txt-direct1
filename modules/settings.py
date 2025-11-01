@@ -1,6 +1,8 @@
 import globals
 from vars import CREDIT
 import random
+import json
+import os
 from pyromod import listen
 from pyrogram import Client, filters
 from pyrogram.types.messages_and_media import message
@@ -19,6 +21,7 @@ def register_settings_handlers(bot):
             [InlineKeyboardButton("💧 Watermark", callback_data="wattermark_command")],
             [InlineKeyboardButton("📽️ Video Quality", callback_data="quality_command"), InlineKeyboardButton("🏷️ Topic", callback_data="topic_command")],
             [InlineKeyboardButton("🔄 Reset", callback_data="resset_command")],
+            [InlineKeyboardButton("⚙️ Manage APIs", callback_data="manage_apis")],
             [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="back_to_main_menu")]
         ])
         await callback_query.message.edit_media(
@@ -392,6 +395,115 @@ def register_settings_handlers(bot):
         finally:
             await input_msg.delete()
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+    # ----------------- API Manager for Settings Panel -----------------
+
+SAVED_APIS_FILE = "saved_apis.json"
+
+def load_apis():
+    if os.path.exists(SAVED_APIS_FILE):
+        with open(SAVED_APIS_FILE, "r") as f:
+            try:
+                return json.load(f)
+            except:
+                return []
+    return []
+
+def save_apis(data):
+    with open(SAVED_APIS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+# Callback to open Manage APIs menu (from Settings)
+@bot.on_callback_query(filters.regex("manage_apis"))
+async def manage_apis_cb(client, cq):
+    user_id = cq.from_user.id
+    apis = load_apis()
+
+    if not apis:
+        text = "⚠️ No saved APIs found."
+    else:
+        text = "📜 <b>Saved APIs:</b>\n\n" + "\n".join([f"{i+1}. {api}" for i, api in enumerate(apis)])
+
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("➕ Add API", callback_data="manage_api_add"),
+         InlineKeyboardButton("🗑 Delete API", callback_data="manage_api_del")],
+        [InlineKeyboardButton("🔙 Back to Settings", callback_data="setttings")]
+    ])
+
+    # Edit message (use edit or edit_media depending on your original message type)
+    try:
+        await cq.message.edit(text, reply_markup=keyboard, disable_web_page_preview=True)
+    except:
+        # fallback to sending a new message if edit fails
+        await cq.message.reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
+
+
+# Handler for Add API (button)
+@bot.on_callback_query(filters.regex("manage_api_add"))
+async def manage_api_add_cb(client, cq):
+    user_id = cq.from_user.id
+    await cq.message.edit("✏️ Send the new API URL to add:\n\n(eg: https://myapi.example/extract?url={url}&token={cptoken})",
+                          reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+    # listen to the same user who clicked
+    new_api_msg = await bot.listen(user_id)
+    new_api = new_api_msg.text.strip()
+
+    try:
+        apis = load_apis()
+
+        if not new_api.startswith("http"):
+            await cq.message.edit("⚠️ Invalid API URL. Must start with http/https.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+            return
+
+        if new_api in apis:
+            await cq.message.edit("⚠️ This API already exists in the list.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+            return
+
+        apis.append(new_api)
+        save_apis(apis)
+        await cq.message.edit(f"✅ API added successfully!\n\nTotal APIs: {len(apis)}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+    except Exception as e:
+        await cq.message.edit(f"❌ Failed to add API:\n{e}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+    finally:
+        # cleanup user message to avoid clutter
+        try:
+            await new_api_msg.delete()
+        except:
+            pass
+
+
+# Handler for Delete API (button)
+@bot.on_callback_query(filters.regex("manage_api_del"))
+async def manage_api_del_cb(client, cq):
+    user_id = cq.from_user.id
+    apis = load_apis()
+
+    if not apis:
+        await cq.message.edit("⚠️ No saved APIs found.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+        return
+
+    api_list = "\n".join([f"{i+1}. {api}" for i, api in enumerate(apis)])
+    await cq.message.edit(f"🗑 Saved APIs:\n{api_list}\n\n✍️ Send the number (index) to delete:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+
+    choice_msg = await bot.listen(user_id)
+    try:
+        idx = int(choice_msg.text.strip()) - 1
+        if idx < 0 or idx >= len(apis):
+            raise ValueError("invalid index")
+
+        removed = apis.pop(idx)
+        save_apis(apis)
+        await cq.message.edit(f"✅ Deleted API:\n{removed}\n\nTotal APIs left: {len(apis)}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+    except Exception as e:
+        await cq.message.edit("⚠️ Invalid selection or error.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Back", callback_data="manage_apis")]]))
+    finally:
+        try:
+            await choice_msg.delete()
+        except:
+            pass
+
+# ----------------- End API Manager -----------------
+
     @bot.on_callback_query(filters.regex("resset_command"))
     async def credit(client, callback_query):
         user_id = callback_query.from_user.id
