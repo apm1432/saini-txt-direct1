@@ -323,11 +323,25 @@ async def drm_handler(bot: Client, m: Message):
                         json.dump(SAVED_APIS, f, indent=2)
 
                 async def format_api(api_template):
-                    """Replace placeholders with actual values"""
+                    # ✅ URL encode
                     formatted = api_template.replace("{url}", urllib.parse.quote(url))
-                    formatted = formatted.replace("{cptoken}", str(cptoken))
-                    formatted = formatted.replace("{OWNER}", str(OWNER))
+
+                    # ✅ Safe cptoken fetch (use only if defined globally or locally)
+                    token_value = globals().get("cptoken", None)
+                    if token_value:
+                        formatted = formatted.replace("{cptoken}", str(token_value))
+                    else:
+                        formatted = formatted.replace("{cptoken}", "")
+
+                    # ✅ Safe OWNER fetch
+                    owner_value = globals().get("OWNER", None)
+                    if owner_value:
+                        formatted = formatted.replace("{OWNER}", str(owner_value))
+                    else:
+                        formatted = formatted.replace("{OWNER}", "")
+
                     return formatted
+
 
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
@@ -476,11 +490,24 @@ async def drm_handler(bot: Client, m: Message):
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
-                async def format_api(api_template):
-                    """Replace placeholders with actual values"""
+                 async def format_api(api_template):
+                    # ✅ URL encode
                     formatted = api_template.replace("{url}", urllib.parse.quote(url))
-                    formatted = formatted.replace("{cptoken}", str(cptoken))
-                    formatted = formatted.replace("{OWNER}", str(OWNER))
+
+                    # ✅ Safe cptoken fetch (use only if defined globally or locally)
+                    token_value = globals().get("cptoken", None)
+                    if token_value:
+                        formatted = formatted.replace("{cptoken}", str(token_value))
+                    else:
+                        formatted = formatted.replace("{cptoken}", "")
+
+                    # ✅ Safe OWNER fetch
+                    owner_value = globals().get("OWNER", None)
+                    if owner_value:
+                        formatted = formatted.replace("{OWNER}", str(owner_value))
+                    else:
+                        formatted = formatted.replace("{OWNER}", "")
+
                     return formatted
 
                 async def try_api(api_template, retries=5, delay=10):
