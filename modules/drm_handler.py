@@ -559,13 +559,13 @@ async def drm_handler(bot: Client, m: Message):
                        SAVED_APIS = json.load(f)
 
                     # ✅ Merge default APIs (avoid duplicates)
-                    for api in DEFAULT_APIS:
-                        if api not in SAVED_APIS:
-                            SAVED_APIS.insert(0, api)   # top ला add करायचं असल्यास insert(0,...)
-                else:
-                    SAVED_APIS = DEFAULT_APIS.copy()
-                    with open(SAVED_APIS_FILE, "w") as f:
-                        json.dump(SAVED_APIS, f, indent=2)
+                   for api in DEFAULT_APIS:
+                      if api not in SAVED_APIS:
+                          SAVED_APIS.insert(0, api)   # top ला add करायचं असल्यास insert(0,...)
+               else:
+                   SAVED_APIS = DEFAULT_APIS.copy()
+                   with open(SAVED_APIS_FILE, "w") as f:
+                       json.dump(SAVED_APIS, f, indent=2)
 
 
                # ✅ Load working API if exists
