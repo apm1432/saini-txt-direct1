@@ -313,15 +313,24 @@ async def drm_handler(bot: Client, m: Message):
                 SAVED_APIS_FILE = "saved_apis.json"
 
                 # ✅ Load saved APIs
+                # ✅ Default APIs (हे नेहमी दिसतील)
+                DEFAULT_APIS = [
+                    "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
+                    "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
+                    "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
+                ]
+
+                # ✅ Load saved APIs
                 if os.path.exists(SAVED_APIS_FILE):
                     with open(SAVED_APIS_FILE, "r") as f:
                         SAVED_APIS = json.load(f)
+
+                    # ✅ Merge default APIs (avoid duplicates)
+                    for api in DEFAULT_APIS:
+                        if api not in SAVED_APIS:
+                            SAVED_APIS.insert(0, api)   # top ला add करायचं असल्यास insert(0,...)
                 else:
-                    SAVED_APIS = [
-                        "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
-                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
-                    ]
+                    SAVED_APIS = DEFAULT_APIS.copy()
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
@@ -359,12 +368,12 @@ async def drm_handler(bot: Client, m: Message):
                                  await bot.delete_messages(m.chat.id, msg.id)
                                  return mpd_local, keys_local
 
-                             msg = await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
-                             await asyncio.sleep(2)
+                             msg = await bot.send_message(m.from_user.id, f"❌ API FAILED:\n{api_template}\nAttempt {attempt+1}/{retries}")
+                             await asyncio.sleep(4)
                              await bot.delete_messages(m.chat.id, msg.id)
                          except Exception as e:
-                             msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                             await asyncio.sleep(2)
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ API ERROR:\n{api_template}\nError: {e}")
+                             await asyncio.sleep(4)
                              await bot.delete_messages(m.chat.id, msg.id)
                          await asyncio.sleep(delay)
 
@@ -537,18 +546,27 @@ async def drm_handler(bot: Client, m: Message):
                SAVED_APIS_FILE = "saved_apis.json"
 
                # ✅ Load saved APIs
-               if os.path.exists(SAVED_APIS_FILE):
-                   with open(SAVED_APIS_FILE, "r") as f:
-                       SAVED_APIS = json.load(f)
-               else:
-                   SAVED_APIS = [
-                       
-                       "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                       "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
-                       "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
-                   ]
-                   with open(SAVED_APIS_FILE, "w") as f:
-                       json.dump(SAVED_APIS, f, indent=2)
+               # ✅ Default APIs (हे नेहमी दिसतील)
+                DEFAULT_APIS = [
+                    "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
+                    "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
+                    "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
+                ]
+
+                # ✅ Load saved APIs
+                if os.path.exists(SAVED_APIS_FILE):
+                    with open(SAVED_APIS_FILE, "r") as f:
+                        SAVED_APIS = json.load(f)
+
+                    # ✅ Merge default APIs (avoid duplicates)
+                    for api in DEFAULT_APIS:
+                        if api not in SAVED_APIS:
+                            SAVED_APIS.insert(0, api)   # top ला add करायचं असल्यास insert(0,...)
+                else:
+                    SAVED_APIS = DEFAULT_APIS.copy()
+                    with open(SAVED_APIS_FILE, "w") as f:
+                        json.dump(SAVED_APIS, f, indent=2)
+
 
                # ✅ Load working API if exists
                if hasattr(globals, "current_api") and globals.current_api:
@@ -584,13 +602,13 @@ async def drm_handler(bot: Client, m: Message):
                                await bot.delete_messages(m.chat.id, msg.id)
                                return mpd_local
 
-                           msg = await bot.send_message(m.from_user.id, f"⚠️ API failed (attempt {attempt+1})")
-                           await asyncio.sleep(1)
+                           msg = await bot.send_message(m.from_user.id, f"❌ API FAILED:\n{formatted_api}\nAttempt {attempt+1}/{retries}")
+                           await asyncio.sleep(3)
                            await bot.delete_messages(m.chat.id, msg.id)
 
                        except Exception as e:
-                           msg = await bot.send_message(m.from_user.id, f"❌ Error: {e}")
-                           await asyncio.sleep(1)
+                           msg = await bot.send_message(m.from_user.id, f"⚠️ API ERROR:\n{formatted_api}\nError: {e}")
+                           await asyncio.sleep(4)
                            await bot.delete_messages(m.chat.id, msg.id)
 
                        await asyncio.sleep(delay)
