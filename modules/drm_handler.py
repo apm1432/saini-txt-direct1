@@ -318,9 +318,9 @@ async def drm_handler(bot: Client, m: Message):
                         SAVED_APIS = json.load(f)
                 else:
                     SAVED_APIS = [
-                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}&user_id={OWNER}",
+                        "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
+                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
@@ -542,9 +542,10 @@ async def drm_handler(bot: Client, m: Message):
                        SAVED_APIS = json.load(f)
                else:
                    SAVED_APIS = [
-                       "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
+                       
                        "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                       "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}&user_id={OWNER}",
+                       "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
+                       "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
                    ]
                    with open(SAVED_APIS_FILE, "w") as f:
                        json.dump(SAVED_APIS, f, indent=2)
