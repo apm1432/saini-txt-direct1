@@ -471,7 +471,7 @@ async def drm_handler(bot: Client, m: Message):
                     for attempt in range(retries):
                         try:
                             formatted_api = api_template.format(url=urllib.parse.quote(url))
-                            mpd_local, keys_local = helper.get_mps_and_keys3(formatted_api)
+                            mpd = helper.get_mps_and_keys3(formatted_api)
                             if mpd :
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd
@@ -513,7 +513,7 @@ async def drm_handler(bot: Client, m: Message):
                     elif cmd == "/retry":
                         await bot.send_message(m.from_user.id, f"🔁 Retrying same API again (#{current_api_index+1})...")
                         mpd, keys = await try_api(current_api)
-                        if mpd and keys:
+                        if mpd:
                             break
 
                     elif cmd == "/change":
@@ -540,7 +540,7 @@ async def drm_handler(bot: Client, m: Message):
                             current_api = new_api
                             await bot.send_message(m.from_user.id, "✅ New API saved & selected. Retrying 5 times...")
                             mpd, keys = await try_api(current_api)
-                            if mpd and keys:
+                            if mpd:
                                 break
 
                         elif mode == "/saved":
