@@ -308,7 +308,7 @@ async def drm_handler(bot: Client, m: Message):
                 else:
                     SAVED_APIS = [
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={cptoken}",
+                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
                         "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
@@ -326,40 +326,17 @@ async def drm_handler(bot: Client, m: Message):
                     """Helper: Try same API several times"""
                     for attempt in range(retries):
                         try:
-                            formatted_api = api_template
-
-                            # 🌐 replace only if placeholder exists in string
-                            if "{url}" in formatted_api:
-                                formatted_api = formatted_api.replace("{url}", urllib.parse.quote(url))
-
-                            if "{cptoken}" in formatted_api:
-                                formatted_api = formatted_api.replace("{cptoken}", str(cptoken))
-
-                            if "{OWNER}" in formatted_api:
-                                formatted_api = formatted_api.replace("{OWNER}", str(OWNER))
-
-                            # 🔍 आता तयार झालेलं final URL वापर
+                            formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
                             mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
-
                             if mpd_local and keys_local:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
                             else:
-                                await bot.send_message(
-                                    m.from_user.id,
-                                    f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s..."
-                                )
-
+                                await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying in {delay}s...")
                         except Exception as e:
-                            await bot.send_message(
-                                m.from_user.id,
-                                f"⚠️ Error on attempt {attempt+1}/{retries}: {e}"
-                            )
-
+                            await bot.send_message(m.from_user.id, f"⚠️ Error on attempt {attempt+1}/{retries}: {e}")
                         await asyncio.sleep(delay)
-
                     return None, None
-
 
                 # 🔁 First try with default API
                 mpd, keys = await try_api(current_api)
@@ -475,7 +452,7 @@ async def drm_handler(bot: Client, m: Message):
                 else:
                     SAVED_APIS = [
                         "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                        "https://dragoapi.vercel.app/classplus?link={urllib.parse.quote(url)}&token={cptoken}",
+                        "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
                         "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
                     ]
                     with open(SAVED_APIS_FILE, "w") as f:
@@ -493,7 +470,7 @@ async def drm_handler(bot: Client, m: Message):
                     """Helper: Try same API several times"""
                     for attempt in range(retries):
                         try:
-                            formatted_api = api_template.format(url=urllib.parse.quote(url))
+                            formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
                             mpd = helper.get_mps_and_keys3(formatted_api)
                             if mpd :
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
@@ -616,7 +593,7 @@ async def drm_handler(bot: Client, m: Message):
                         try:
                             headers = {
                                 'host': 'api.classplusapp.com',
-                                'x-access-token': f'{token}',
+                                'x-access-token': f'{cptoken}',
                                 'accept-language': 'EN',
                                 'api-version': '18',
                                 'app-version': '1.4.73.2',
