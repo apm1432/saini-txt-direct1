@@ -559,7 +559,7 @@ async def drm_handler(bot: Client, m: Message):
 
                     new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
                     cmd = new_msg.text.strip().lower()
-                     try:
+                    try:
                         await bot.delete_messages(m.chat.id, msg.id)
                     except:
                         pass 
