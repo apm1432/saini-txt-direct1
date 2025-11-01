@@ -490,7 +490,7 @@ async def drm_handler(bot: Client, m: Message):
                     with open(SAVED_APIS_FILE, "w") as f:
                         json.dump(SAVED_APIS, f, indent=2)
 
-                 async def format_api(api_template):
+                async def format_api(api_template):
                     # ✅ URL encode
                     formatted = api_template.replace("{url}", urllib.parse.quote(url))
 
