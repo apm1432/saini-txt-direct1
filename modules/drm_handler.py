@@ -42,6 +42,8 @@ import globals
 from utils import progress_bar
 from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_USERS, cookies_file_path
 from vars import api_url, api_token
+from saini import get_mps_and_keys2, get_mps_and_keys3
+
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
 
@@ -348,8 +350,8 @@ async def drm_handler(bot: Client, m: Message):
                     for attempt in range(retries):
                         try:
                             formatted_api = await format_api(api_template)
-                            mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
-                            if mpd_local and keys_local:
+                            mpd, keys = helper.get_mps_and_keys2(formatted_api)
+                            if mpd and keys:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
                             else:
