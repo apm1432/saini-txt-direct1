@@ -366,10 +366,32 @@ async def drm_handler(bot: Client, m: Message):
 
                      return None, None
 
+                # ✅ ADD THIS FUNCTION BELOW try_api()
+                async def auto_try_all_apis():
+                    global current_api
+
+                    for idx, api_template in enumerate(SAVED_APIS):
+
+                        msg = await bot.send_message(
+                            m.from_user.id,
+                            f"🔁 Trying API #{idx+1}..."
+                        )
+                        await asyncio.sleep(2)
+                        await bot.delete_messages(m.chat.id, msg.id)
+
+                        mpd_local, keys_local = await try_api(api_template)
+
+                        if mpd_local and keys_local:
+                            globals.current_api = api_template  # ✅ Save working API
+                            return mpd_local, keys_local
+
+                    return None, None
+
+
 
                 # ✅ First API try
-                mpd, keys = await try_api(current_api)
-
+               # mpd, keys = await try_api(current_api)
+                mpd, keys = await auto_try_all_apis()
                 # ✅ If failed 5 times
                 while not mpd or not keys:
 
