@@ -350,7 +350,7 @@ async def drm_handler(bot: Client, m: Message):
                     for attempt in range(retries):
                         try:
                             formatted_api = await format_api(api_template)
-                            mpd, keys = helper.get_mps_and_keys2(formatted_api)
+                            mpd, keys = get_mps_and_keys2(formatted_api)
                             if mpd and keys:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local, keys_local
@@ -517,7 +517,7 @@ async def drm_handler(bot: Client, m: Message):
                     for attempt in range(retries):
                         try:
                             formatted_api = await format_api(api_template)
-                            mpd_local = helper.get_mps_and_keys3(formatted_api)
+                            mpd_local = get_mps_and_keys3(formatted_api)
                             if mpd_local:
                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
                                 return mpd_local
