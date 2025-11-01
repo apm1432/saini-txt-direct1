@@ -350,14 +350,18 @@ async def drm_handler(bot: Client, m: Message):
                              mpd_local, keys_local = helper.get_mps_and_keys2(formatted_api)
 
                              if mpd_local and keys_local:
-                                 await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
+                                 msg = await bot.send_message(m.from_user.id, f"✅ Got keys successfully on attempt {attempt+1}")
+                                 await asyncio.sleep(2)
+                                 await bot.delete_messages(m.chat.id, msg.id)
                                  return mpd_local, keys_local
 
-                             await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
-
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
                          except Exception as e:
-                             await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
                          await asyncio.sleep(delay)
 
                      return None, None
@@ -369,7 +373,7 @@ async def drm_handler(bot: Client, m: Message):
                 # ✅ If failed 5 times
                 while not mpd or not keys:
 
-                    await bot.send_message(
+                    msg = await bot.send_message(
                         m.from_user.id,
                         f"❌ All retries failed for:\n{url}\n\n"
                         "Commands:\n"
@@ -377,11 +381,17 @@ async def drm_handler(bot: Client, m: Message):
                         "• `/change` → Change API (new/saved)\n"
                         "• `/skip` → Skip link\n"
                         "• `/stoped` → Stop process"
+                        "• send /retry /change /skip /stoped."
                     )
 
                     new_msg = await bot.listen(m.from_user.id)
                     cmd = new_msg.text.strip().lower()
 
+                    try:
+                        await bot.delete_messages(m.chat.id, msg.id)
+                    except:
+                        pass 
+                    
                     if cmd == "/stoped":
                         await bot.send_message(m.from_user.id, "⏹️ Process stopped.")
                         globals.cancel_requested = True
@@ -400,7 +410,7 @@ async def drm_handler(bot: Client, m: Message):
 
                         await bot.send_message(
                             m.from_user.id,
-                            "Reply `/new` for new API or `/saved` to choose saved API."
+                            "Reply /new for new API or /saved to choose saved API."
                         )
 
                         mode_msg = await bot.listen(m.from_user.id)
@@ -417,8 +427,10 @@ async def drm_handler(bot: Client, m: Message):
 
                             current_api = new_api
                             globals.current_api = new_api
-                            await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
+                            msg = await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
                             "🔁 This API will now be used automatically for all next URLs.")
+                            await asyncio.sleep(2)
+                            await bot.delete_messages(m.chat.id, msg.id)
                             mpd, keys = await try_api(current_api)
                             if mpd and keys:
                                 break
@@ -440,19 +452,23 @@ async def drm_handler(bot: Client, m: Message):
                                 idx = int(choice_msg.text.strip()) - 1
                                 current_api = SAVED_APIS[idx]
                                 globals.current_api = current_api
-                                await bot.send_message(
+                                msg = await bot.send_message(
                                     m.from_user.id,
                                     f"✅ Using saved API #{idx+1}.\n"
                                     "🔁 This API will now be used automatically for all next URLs."
                                 )
+                                await bot.delete_messages(m.chat.id, msg.id)
                                 mpd, keys = await try_api(current_api)
                                 if mpd and keys:
                                     break
                             except:
-                                await bot.send_message(m.from_user.id, "⚠️ Invalid number.")
-
+                                msg = await bot.send_message(m.from_user.id, "⚠️ Invalid number.")
+                                await asyncio.sleep(2)
+                                await bot.delete_messages(m.chat.id, msg.id)
                     else:
-                        await bot.send_message(m.from_user.id, "⚠️ Unknown command.")
+                        msg = await bot.send_message(m.from_user.id, "⚠️ Unknown command.")
+                        await asyncio.sleep(2)
+                        await bot.delete_messages(m.chat.id, msg.id)
 
                 # ✅ Success
                 if mpd and keys:
@@ -511,11 +527,17 @@ async def drm_handler(bot: Client, m: Message):
 
                              mpd_local = helper.get_mps_and_keys3(formatted_api)
                              if mpd_local:
-                                 await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
+                                 msg = await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
+                                 await asyncio.sleep(2)
+                                 await bot.delete_messages(m.chat.id, msg.id)
                                  return mpd_local
-                             await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
                          except Exception as e:
-                             await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                             msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                             await asyncio.sleep(2)
+                             await bot.delete_messages(m.chat.id, msg.id)
                          await asyncio.sleep(delay)
                      return None
 
@@ -524,7 +546,7 @@ async def drm_handler(bot: Client, m: Message):
 
                 # 🚨 If failed 5 times
                 while not mpd:
-                    await bot.send_message(
+                    msg = await bot.send_message(
                         m.from_user.id,
                        f"❌ All retries failed for link:\n{url}\n\n"
                        "Please reply with one of the following commands:\n"
@@ -537,6 +559,10 @@ async def drm_handler(bot: Client, m: Message):
 
                     new_msg: Message = await bot.listen(m.from_user.id, timeout=None)
                     cmd = new_msg.text.strip().lower()
+                     try:
+                        await bot.delete_messages(m.chat.id, msg.id)
+                    except:
+                        pass 
 
                     if cmd == "/stoped":
                         await bot.send_message(m.from_user.id, "⏹️ Process stopped by owner.")
@@ -558,7 +584,7 @@ async def drm_handler(bot: Client, m: Message):
                         await bot.send_message(
                         m.from_user.id,
                             "🔄 Do you want to use a **new API** or a **saved API**?\n"
-                            "Reply with: `/new` or `/saved`"
+                            "Reply with: /new or /saved"
                         )
 
                         mode_msg: Message = await bot.listen(m.from_user.id, timeout=None)
@@ -576,8 +602,10 @@ async def drm_handler(bot: Client, m: Message):
 
                             current_api = new_api
                             globals.current_api = new_api
-                            await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
+                            msg = await bot.send_message(m.from_user.id, "✅ New API saved & selected.\n"
                             "🔁 This API will now be used automatically for all next URLs.")
+                            await asyncio.sleep(2)
+                            await bot.delete_messages(m.chat.id, msg.id)
                             mpd = await try_api(current_api)
                             if mpd:
                                 break
@@ -605,16 +633,22 @@ async def drm_handler(bot: Client, m: Message):
                                     if mpd:
                                         break
                                     else:
-                                        await bot.send_message(m.from_user.id, "❌ This saved API also failed. Try another or `/new`.")
+                                        msg = await bot.send_message(m.from_user.id, "❌ This saved API also failed. Try another or `/new`.")
+                                        await asyncio.sleep(2)
+                                        await bot.delete_messages(m.chat.id, msg.id)
                                 else:
-                                    await bot.send_message(m.from_user.id, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
+                                    msg = await bot.send_message(m.from_user.id, "⚠️ Invalid number. Please send a valid index (1, 2, 3...).")
+                                    await asyncio.sleep(2)
+                                    await bot.delete_messages(m.chat.id, msg.id)
                             except ValueError:
                                 await bot.send_message(m.from_user.id, "⚠️ Invalid input. Send a number like 1, 2, or 3.")
                         else:
-                            await bot.send_message(m.from_user.id, "⚠️ Please reply only with `/new` or `/saved`.")
+                            await bot.send_message(m.from_user.id, "⚠️ Please reply only with /new or /saved.")
 
                     else:
-                        await bot.send_message(m.from_user.id, "❓ Unknown command. Please send /retry /change /skip /stoped.")
+                        msg = await bot.send_message(m.from_user.id, "❓ Unknown command. Please send /retry /change /skip /stoped.")
+                        await asyncio.sleep(2)
+                        await bot.delete_messages(m.chat.id, msg.id)
 
                 # ✅ Continue only if success
                 if mpd:
