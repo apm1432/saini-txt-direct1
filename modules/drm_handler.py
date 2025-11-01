@@ -310,29 +310,17 @@ async def drm_handler(bot: Client, m: Message):
                 )
 
                 mpd, keys = None, None
-                SAVED_APIS_FILE = "saved_apis.json"
-
+                SAVED_APIS_FILE = "modules/saved_apis.json"
                 # ✅ Load saved APIs
-                # ✅ Default APIs (हे नेहमी दिसतील)
-                DEFAULT_APIS = [
-                    "https://covercel.vercel.app/extract_keys?url={url}@bots_updatee&user_id=6050965589",
-                    "https://head-micheline-botupdatevip-f1804c58.koyeb.app/get_keys?url={url}@botupdatevip4u&user_id={OWNER}",
-                    "https://dragoapi.vercel.app/classplus?link={url}&token={cptoken}",
-                ]
-
-                # ✅ Load saved APIs
+                # ✅ Load API list
                 if os.path.exists(SAVED_APIS_FILE):
                     with open(SAVED_APIS_FILE, "r") as f:
                         SAVED_APIS = json.load(f)
-
-                    # ✅ Merge default APIs (avoid duplicates)
-                    for api in DEFAULT_APIS:
-                        if api not in SAVED_APIS:
-                            SAVED_APIS.insert(0, api)   # top ला add करायचं असल्यास insert(0,...)
                 else:
-                    SAVED_APIS = DEFAULT_APIS.copy()
+                    SAVED_APIS = []
                     with open(SAVED_APIS_FILE, "w") as f:
-                        json.dump(SAVED_APIS, f, indent=2)
+                    json.dump(SAVED_APIS, f, indent=2)
+
 
                 current_api_index = 0
                 if hasattr(globals, "current_api") and globals.current_api:
