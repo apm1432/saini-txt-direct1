@@ -91,7 +91,8 @@ def get_mps_and_keys3(api_url):
     try:
         response = requests.get(api_url, timeout=16)
         response_json = response.json()
-        mpd = response_json.get('url')
+       # mpd = response_json.get('url')
+        mpd = response_json.get("url") or response_json.get("URL") or response_json.get("mpd") or response_json.get("MPD")
         
 
 
