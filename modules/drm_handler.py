@@ -42,6 +42,10 @@ import globals
 from utils import progress_bar
 from vars import API_ID, API_HASH, BOT_TOKEN, OWNER, CREDIT, AUTH_USERS, TOTAL_USERS, cookies_file_path
 from vars import api_url, api_token
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
 
