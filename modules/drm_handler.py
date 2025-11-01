@@ -491,15 +491,15 @@ async def drm_handler(bot: Client, m: Message):
                                  )
                              )
 
-                            mpd_local = helper.get_mps_and_keys3(formatted_api)
-                            if mpd_local:
-                                await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
-                                return mpd_local
-                            await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
-                        except Exception as e::
-                            await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                        await asyncio.sleep(delay)
-                    return None
+                             mpd_local = helper.get_mps_and_keys3(formatted_api)
+                             if mpd_local:
+                                 await bot.send_message(m.from_user.id, f"✅ Got keys on attempt {attempt+1}")
+                                 return mpd_local
+                             await bot.send_message(m.from_user.id, f"⚠️ Attempt {attempt+1}/{retries} failed — retrying...")
+                         except Exception as e::
+                             await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                         await asyncio.sleep(delay)
+                     return None
 
                 # 🔁 First try with default API
                 mpd = await try_api(current_api)
