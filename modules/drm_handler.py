@@ -319,7 +319,7 @@ async def drm_handler(bot: Client, m: Message):
                 else:
                     SAVED_APIS = []
                     with open(SAVED_APIS_FILE, "w") as f:
-                    json.dump(SAVED_APIS, f, indent=2)
+                        json.dump(SAVED_APIS, f, indent=2)
 
 
                 current_api_index = 0
@@ -542,7 +542,7 @@ async def drm_handler(bot: Client, m: Message):
                else:
                    SAVED_APIS = []
                    with open(SAVED_APIS_FILE, "w") as f:
-                   json.dump(SAVED_APIS, f, indent=2)
+                       json.dump(SAVED_APIS, f, indent=2)
 
 
                # ✅ Load working API if exists
