@@ -11,6 +11,54 @@ from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, Message
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
+@bot.on_message(filters.command("superadd") & filters.private)
+async def super_add_api(client, message):
+
+    # ✅ Get API from command
+    try:
+        new_api = message.text.split(None, 1)[1].strip()
+    except:
+        return await message.reply("⚠️ Usage:\n`/superadd <API_URL>`")
+
+    # ✅ Load existing APIs
+    try:
+        with open("saved_apis.json", "r") as f:
+            saved = json.load(f)
+    except:
+        saved = []
+
+    # ✅ Add API to TOP
+    saved.insert(0, new_api)
+
+    # ✅ Save updated list
+    with open("saved_apis.json", "w") as f:
+        json.dump(saved, f, indent=4)
+
+    # ✅ NOW GENERATE SUMMARY
+    api_count = len(saved)
+
+    summary_list = []
+    for api in saved:
+        words = api.split()
+
+        # first 10 + last 12 words
+        first_10 = " ".join(words[:10])
+        last_12 = " ".join(words[-12:])
+
+        summary_list.append(
+            f"• **Start:** {first_10}\n  **End:** {last_12}"
+        )
+
+    summary_text = "\n\n".join(summary_list)
+
+    # ✅ Send message to owner
+    await message.reply(
+        f"✅ **API Added Successfully to TOP!**\n\n"
+        f"📊 **Total APIs Available:** `{api_count}`\n\n"
+        f"📜 **API Summary:**\n\n{summary_text}"
+    )
+
+# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
 
 # commands button
 def register_commands_handlers(bot):
@@ -80,7 +128,8 @@ def register_commands_handlers(bot):
             f"👤 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬\n\n" 
             f"➥ /addauth xxxx – Add User ID\n" 
             f"➥ /rmauth xxxx – Remove User ID\n"  
-            f"➥ /users – Total User List\n"  
+            f"➥ /users – Total User List\n"
+            f"➥ /superadd <API> – Add API to TOP\n"
             f"➥ /broadcast – For Broadcasting\n"  
             f"➥ /broadusers – All Broadcasting Users\n"  
             f"➥ /reset – Reset Bot\n"
