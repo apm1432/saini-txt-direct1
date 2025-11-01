@@ -581,11 +581,11 @@ async def drm_handler(bot: Client, m: Message):
 
                # ✅ CLEANED try_api() — AUTO SELECT FUNCTION
                async def try_api(api_template, retries=2, delay=8):
-                   for attempt in range(retries):
-                       current_cptoken = globals.cptokens[0] if globals.cptokens else ""
-                       encoded_url = urllib.parse.quote(url)
+                    for attempt in range(retries):
+                        current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                        encoded_url = urllib.parse.quote(url)
 
-                       try:
+                        try:
                            formatted_api = api_template.format_map(
                                SafeDict(
                                    url=encoded_url,
