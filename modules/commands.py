@@ -72,122 +72,6 @@ def register_commands_handlers(bot):
         ),
         reply_markup=keyboard
         )
-# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
-@bot.on_message(filters.command("superadd") & filters.private)
-async def super_add_api(client, message):
-
-    # ✅ Get API from command
-    try:
-        new_api = message.text.split(None, 1)[1].strip()
-    except:
-        return await message.reply("⚠️ Usage:\n`/superadd <API_URL>`")
-
-    # ✅ Load existing APIs
-    try:
-        with open("saved_apis.json", "r") as f:
-            saved = json.load(f)
-    except:
-        saved = []
-
-    # ✅ Add API to TOP
-    saved.insert(0, new_api)
-
-    # ✅ Save updated list
-    with open("saved_apis.json", "w") as f:
-        json.dump(saved, f, indent=4)
-
-    # ✅ NOW GENERATE SUMMARY
-    api_count = len(saved)
-
-    summary_list = []
-    for api in saved:
-        words = api.split()
-
-        # first 10 + last 12 words
-        first_10 = " ".join(words[:10])
-        last_12 = " ".join(words[-12:])
-
-        summary_list.append(
-            f"• **Start:** {first_10}\n  **End:** {last_12}"
-        )
-
-    summary_text = "\n\n".join(summary_list)
-
-    # ✅ Send message to owner
-    await message.reply(
-        f"✅ **API Added Successfully to TOP!**\n\n"
-        f"📊 **Total APIs Available:** `{api_count}`\n\n"
-        f"📜 **API Summary:**\n\n{summary_text}"
-    )
-
-# .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
-    delete_waiting = {}  # user_id → True (waiting for number)
-
-@bot.on_message(filters.command("apid") & filters.private)
-async def list_apis_for_delete(client, message):
-
-    user_id = message.from_user.id
-
-    # Load API list
-    try:
-        with open("saved_apis.json", "r") as f:
-            saved = json.load(f)
-    except:
-        saved = []
-
-    if len(saved) == 0:
-        return await message.reply("❗ No APIs available to delete.")
-
-    text = "✅ **Available APIs:**\n\n"
-    for i, api in enumerate(saved, start=1):
-        text += f"**{i}.** `{api}`\n\n"
-
-    text += "👉 Reply with the **API number** to delete."
-
-    delete_waiting[user_id] = True  # Expecting number reply
-
-    await message.reply(text)
-
-
-
-@bot.on_message(filters.private)
-async def process_api_delete_number(client, message):
-
-    user_id = message.from_user.id
-
-    # Check if this user is expected to send number
-    if user_id not in delete_waiting:
-        return
-
-    # Validate number
-    try:
-        index = int(message.text.strip()) - 1
-    except:
-        return await message.reply("⚠️ Please send a valid number!")
-
-    # Load existing APIs
-    try:
-        with open("saved_apis.json", "r") as f:
-            saved = json.load(f)
-    except:
-        saved = []
-
-    if index < 0 or index >= len(saved):
-        return await message.reply("❌ Invalid API number!")
-
-    removed_api = saved.pop(index)
-
-    # Save updated list
-    with open("saved_apis.json", "w") as f:
-        json.dump(saved, f, indent=4)
-
-    del delete_waiting[user_id]  # stop waiting
-
-    await message.reply(
-        f"✅ **API Deleted Successfully!**\n\n"
-        f"🗑️ Removed:\n`{removed_api}`\n\n"
-        f"📊 **APIs Remaining:** {len(saved)}"
-    )
 
 # .....,.....,.......,...,.......,....., .....,.....,.......,...,.......,.....,
     @bot.on_callback_query(filters.regex("owner_command"))
@@ -200,7 +84,6 @@ async def process_api_delete_number(client, message):
             f"➥ /addauth xxxx – Add User ID\n" 
             f"➥ /rmauth xxxx – Remove User ID\n"  
             f"➥ /users – Total User List\n"
-            f"➥ /superadd <API> – Add API to TOP\n"
             f"➥ /broadcast – For Broadcasting\n"  
             f"➥ /broadusers – All Broadcasting Users\n"  
             f"➥ /reset – Reset Bot\n"
