@@ -617,15 +617,15 @@ async def drm_handler(bot: Client, m: Message):
                            )
                            await asyncio.sleep(1)
                            await bot.delete_messages(m.chat.id, msg.id)
- 
-                       except Exception as e:
-                           msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                           await asyncio.sleep(1)
-                           await bot.delete_messages(m.chat.id, msg.id)
- 
-                       await asyncio.sleep(delay)
- 
-                   return None
+
+                        except Exception as e:
+                            msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                            await asyncio.sleep(2)
+                            await bot.delete_messages(m.chat.id, msg.id)
+
+                        await asyncio.sleep(delay)
+
+                    return None
 
 
                           # ✅ Try all APIs (correct order)
