@@ -324,6 +324,8 @@ async def drm_handler(bot: Client, m: Message):
 
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
+                    # ✅ ADD THIS LINE
+                    current_cptoken = globals.cptokens[0] if globals.cptokens else ""
                     for attempt in range(retries):
                         try:
                             formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
@@ -468,6 +470,8 @@ async def drm_handler(bot: Client, m: Message):
 
                 async def try_api(api_template, retries=5, delay=10):
                     """Helper: Try same API several times"""
+                    # ✅ ADD THIS LINE
+                    current_cptoken = globals.cptokens[0] if globals.cptokens else ""
                     for attempt in range(retries):
                         try:
                             formatted_api = api_template.format(url=urllib.parse.quote(url), cptoken=current_cptoken, OWNER=OWNER)
