@@ -337,7 +337,7 @@ async def drm_handler(bot: Client, m: Message):
                         json.dump(SAVED_APIS, f, indent=2)
 
                 # ✅ CLEANED try_api()
-                async def try_api(api_template, retries=5, delay=10):
+                async def try_api(api_template, retries=2, delay=8):
                      for attempt in range(retries):
                          current_cptoken = globals.cptokens[0] if globals.cptokens else ""
                          encoded_url = urllib.parse.quote(url)
@@ -561,7 +561,7 @@ async def drm_handler(bot: Client, m: Message):
                        json.dump(SAVED_APIS, f, indent=2)
 
                # ✅ Try 1 API with retries
-               async def try_api(api_template, retries=5, delay=5):
+               async def try_api(api_template, retries=3, delay=5):
                    for attempt in range(retries):
 
                        current_cptoken = globals.cptokens[0] if globals.cptokens else ""
