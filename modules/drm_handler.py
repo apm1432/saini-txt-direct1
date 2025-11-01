@@ -338,7 +338,7 @@ async def drm_handler(bot: Client, m: Message):
 
                 # ✅ CLEANED try_api()
                 # ✅ CLEANED try_api() — AUTO SELECT FUNCTION
-                async def try_api(api_template, retries=5, delay=10):
+                async def try_api(api_template, retries=2, delay=8):
                     for attempt in range(retries):
                         current_cptoken = globals.cptokens[0] if globals.cptokens else ""
                         encoded_url = urllib.parse.quote(url)
@@ -433,11 +433,10 @@ async def drm_handler(bot: Client, m: Message):
                         m.from_user.id,
                         f"❌ All retries failed for:\n{url}\n\n"
                         "Commands:\n"
-                        "• `/retry` → Retry same API\n"
-                        "• `/change` → Change API (new/saved)\n"
-                        "• `/skip` → Skip link\n"
-                        "• `/stoped` → Stop process"
-                        "• send /retry /change /skip /stoped."
+                        "• /retry → Retry same API\n"
+                        "• /change → Change API (new/saved)\n"
+                        "• /skip → Skip link\n"
+                        "• /stoped → Stop process"
                     )
 
                     new_msg = await bot.listen(m.from_user.id)
@@ -581,53 +580,53 @@ async def drm_handler(bot: Client, m: Message):
                        json.dump(SAVED_APIS, f, indent=2)
 
                # ✅ CLEANED try_api() — AUTO SELECT FUNCTION
-               async def try_api(api_template, retries=5, delay=10):
+               async def try_api(api_template, retries=2, delay=8):
                     for attempt in range(retries):
 
-                   current_cptoken = globals.cptokens[0] if globals.cptokens else ""
-                   encoded_url = urllib.parse.quote(url)
+                    current_cptoken = globals.cptokens[0] if globals.cptokens else ""
+                    encoded_url = urllib.parse.quote(url)
 
-                   try:
-                       formatted_api = api_template.format_map(
-                           SafeDict(
-                               url=encoded_url,
-                               cptoken=current_cptoken,
-                               OWNER=OWNER
-                           )
-                       )
-
-                       # ✅ Detect correct function
-                       if "{cptoken}" in api_template or "token=" in api_template:
-                           mpd_local = helper.get_mps_and_keys2(formatted_api)
-                       else:
-                           mpd_local = helper.get_mps_and_keys3(formatted_api)
-
-                       # ✅ SUCCESS
-                       if mpd_local:
-                           msg = await bot.send_message(
-                               m.from_user.id,
-                               f"✅ Got MPD on attempt {attempt+1}"
-                           )
-                           await asyncio.sleep(1)
-                           await bot.delete_messages(m.chat.id, msg.id)
-                           return mpd_local
-
-                       # ❌ FAIL retry message
-                       msg = await bot.send_message(
-                           m.from_user.id,
-                           f"⚠️ Failed attempt {attempt+1}/{retries} — retrying..."
-                       )
-                       await asyncio.sleep(1)
-                       await bot.delete_messages(m.chat.id, msg.id)
-
-                   except Exception as e:
-                       msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
-                       await asyncio.sleep(1)
-                       await bot.delete_messages(m.chat.id, msg.id)
-
-                   await asyncio.sleep(delay)
-
-               return None
+                    try:
+                        formatted_api = api_template.format_map(
+                            SafeDict(
+                                url=encoded_url,
+                                cptoken=current_cptoken,
+                                OWNER=OWNER
+                            )
+                        )
+ 
+                        # ✅ Detect correct function
+                        if "{cptoken}" in api_template or "token=" in api_template:
+                            mpd_local = helper.get_mps_and_keys2(formatted_api)
+                        else:
+                            mpd_local = helper.get_mps_and_keys3(formatted_api)
+ 
+                        # ✅ SUCCESS
+                        if mpd_local:
+                            msg = await bot.send_message(
+                                m.from_user.id,
+                                f"✅ Got MPD on attempt {attempt+1}"
+                            )
+                            await asyncio.sleep(1)
+                            await bot.delete_messages(m.chat.id, msg.id)
+                            return mpd_local
+ 
+                        # ❌ FAIL retry message
+                        msg = await bot.send_message(
+                            m.from_user.id,
+                            f"⚠️ Failed attempt {attempt+1}/{retries} — retrying..."
+                        )
+                        await asyncio.sleep(1)
+                        await bot.delete_messages(m.chat.id, msg.id)
+ 
+                    except Exception as e:
+                        msg = await bot.send_message(m.from_user.id, f"⚠️ Error: {e}")
+                        await asyncio.sleep(1)
+                        await bot.delete_messages(m.chat.id, msg.id)
+ 
+                    await asyncio.sleep(delay)
+ 
+                return None
 
 
                           # ✅ Try all APIs (correct order)
